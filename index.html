@@ -1,0 +1,540 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Untold Stories and Unsung Heroes: a limited series of stories based on true events. Share a story.">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Untold Stories and Unsung Heroes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@500;700;900&family=Courier+Prime:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,600;1,6..72,400&display=swap">
+<style>
+/* Layout: a projector-lit screening room. Marquee hero with a light beam, a running filmstrip, case-file cards, a typed submission form, and a ledger of terms. Dark first; light is archive paper. */
+:root{
+  --ink:#16120e;        /* page ground: theater dark */
+  --stage:#211b15;      /* raised surfaces */
+  --line:#3b3229;       /* rules and borders */
+  --paper:#f2e8d7;      /* main text */
+  --dust:#ab9c89;       /* secondary text */
+  --amber:#e8a948;      /* marquee light, the one accent */
+  --amber-ink:#1a1206;  /* text on amber */
+  --teal:#74b4aa;       /* film-base tint, used sparingly */
+  --redact:#050403;     /* redaction bars */
+  --beam:rgba(232,169,72,.15);
+  --grain:.075;
+  --ok:#8cc38a;
+  --bad:#e38b7a;
+  --font-display:"Big Shoulders Display","Oswald","Arial Narrow",sans-serif;
+  --font-body:"Newsreader",Georgia,"Times New Roman",serif;
+  --font-type:"Courier Prime","Courier New",monospace;
+  --step--1:clamp(.82rem,.78rem + .2vw,.9rem);
+  --step-0:clamp(1.02rem,.96rem + .3vw,1.16rem);
+  --step-1:clamp(1.25rem,1.1rem + .6vw,1.55rem);
+  --step-2:clamp(1.8rem,1.4rem + 1.8vw,2.9rem);
+  --step-3:clamp(3rem,1.6rem + 9vw,9.5rem);
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){
+    --ink:#f2eee6; --stage:#e6ded0; --line:#cdbfab; --paper:#1d1711; --dust:#5f5347;
+    --amber:#9a5c0b; --amber-ink:#fff8ec; --teal:#2c6a62; --redact:#1d1711;
+    --beam:rgba(154,92,11,.10); --grain:.045; --ok:#2f7a3a; --bad:#a23a28;
+    color-scheme:light;
+  }
+}
+:root[data-theme="light"]{
+  --ink:#f2eee6; --stage:#e6ded0; --line:#cdbfab; --paper:#1d1711; --dust:#5f5347;
+  --amber:#9a5c0b; --amber-ink:#fff8ec; --teal:#2c6a62; --redact:#1d1711;
+  --beam:rgba(154,92,11,.10); --grain:.045; --ok:#2f7a3a; --bad:#a23a28;
+  color-scheme:light;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--paper);font-family:var(--font-body);font-size:var(--step-0);line-height:1.6;overflow-x:clip}
+a{color:var(--amber)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+h1,h2,h3{font-family:var(--font-display);line-height:.95;text-wrap:balance;margin:0;letter-spacing:.01em}
+h2{font-size:var(--step-2);font-weight:800;text-transform:uppercase}
+h3{font-size:var(--step-1);font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+p{margin:0}
+.wrap{max-width:1180px;margin-inline:auto;padding-inline:clamp(16px,4vw,40px)}
+.eyebrow{font-family:var(--font-type);font-size:var(--step--1);letter-spacing:.14em;text-transform:uppercase;color:var(--amber)}
+.lede{max-width:62ch;color:var(--dust)}
+section{padding-block:clamp(64px,9vw,120px)}
+.sec-head{display:grid;gap:14px;margin-bottom:clamp(28px,4vw,48px)}
+
+/* grain */
+#grain{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;opacity:var(--grain);z-index:50;mix-blend-mode:overlay}
+
+/* nav */
+.nav{position:sticky;top:env(safe-area-inset-top,0px);z-index:40;background:color-mix(in srgb,var(--ink) 82%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav .wrap{display:flex;align-items:center;gap:20px;padding-block:12px;flex-wrap:wrap}
+.brand{font-family:var(--font-display);font-weight:900;font-size:1.35rem;letter-spacing:.06em;text-transform:uppercase;color:var(--paper);text-decoration:none;display:flex;gap:.35em;align-items:baseline}
+.brand span{color:var(--amber)}
+.nav-links{display:flex;gap:18px;margin-left:auto;flex-wrap:wrap}
+.nav-links a{font-family:var(--font-type);font-size:var(--step--1);color:var(--dust);text-decoration:none;text-transform:uppercase;letter-spacing:.08em}
+.nav-links a:hover{color:var(--paper)}
+@media (max-width:640px){.nav-links{display:none}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;padding-block:clamp(56px,9vw,110px) clamp(28px,4vw,48px)}
+.beam{position:absolute;top:-30%;right:-20%;width:120%;height:170%;pointer-events:none;background:conic-gradient(from 205deg at 92% 4%,transparent 0deg,var(--beam) 10deg,transparent 26deg,transparent 360deg);transform-origin:92% 4%;animation:sweep 11s ease-in-out infinite alternate}
+@keyframes sweep{from{transform:rotate(-7deg)}to{transform:rotate(9deg)}}
+.hero .wrap{position:relative;display:grid;gap:26px}
+.kicker{font-family:var(--font-type);font-size:var(--step-0);color:var(--dust)}
+.kicker .caret{display:inline-block;width:.6ch;height:1.05em;background:var(--amber);vertical-align:-.15em;margin-left:2px;animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+.hero h1{font-size:var(--step-3);font-weight:900;text-transform:uppercase;line-height:.86;display:grid}
+.hero h1 .l1{color:var(--paper)}
+.hero h1 .l2{color:var(--amber);animation:illuminate 2.4s .3s ease-out both}
+@keyframes illuminate{
+  0%{color:transparent;-webkit-text-stroke:1.5px var(--amber);text-shadow:none}
+  55%{color:transparent;-webkit-text-stroke:1.5px var(--amber)}
+  100%{color:var(--amber);-webkit-text-stroke:0 transparent;text-shadow:0 0 38px color-mix(in srgb,var(--amber) 35%,transparent)}
+}
+.hero .lede{font-size:var(--step-1);line-height:1.45;max-width:46ch;color:var(--paper)}
+.ctas{display:flex;gap:12px;flex-wrap:wrap}
+.btn{font-family:var(--font-display);font-weight:700;font-size:1.15rem;letter-spacing:.08em;text-transform:uppercase;text-decoration:none;padding:.75em 1.35em;border:1.5px solid var(--amber);border-radius:2px;cursor:pointer;display:inline-flex;align-items:center;gap:.5em;transition:transform .2s,background .2s,color .2s}
+.btn-solid{background:var(--amber);color:var(--amber-ink)}
+.btn-ghost{background:transparent;color:var(--amber)}
+.btn:hover{transform:translateY(-2px)}
+.btn-ghost:hover{background:color-mix(in srgb,var(--amber) 12%,transparent)}
+
+/* filmstrip */
+.strip{position:relative;background:var(--redact);padding-block:22px;overflow:hidden;border-block:1px solid var(--line)}
+.strip::before,.strip::after{content:"";position:absolute;left:0;right:0;height:10px;background:repeating-linear-gradient(90deg,transparent 0 10px,color-mix(in srgb,var(--paper) 22%,transparent) 10px 22px,transparent 22px 34px)}
+.strip::before{top:6px}.strip::after{bottom:6px}
+.track{display:flex;gap:14px;width:max-content;animation:roll 55s linear infinite}
+.strip:hover .track{animation-play-state:paused}
+@keyframes roll{to{transform:translateX(-50%)}}
+.frame{width:230px;aspect-ratio:4/3;max-width:100%;flex:none;position:relative;border:1px solid color-mix(in srgb,var(--paper) 14%,transparent);background:radial-gradient(ellipse at 50% 40%,color-mix(in srgb,var(--amber) 22%,var(--stage)),var(--redact) 75%);display:grid;place-items:center;overflow:hidden}
+.frame svg{width:38%;height:auto;color:color-mix(in srgb,var(--paper) 80%,transparent);filter:drop-shadow(0 0 14px color-mix(in srgb,var(--amber) 45%,transparent))}
+.frame figcaption{position:absolute;left:10px;bottom:8px;font-family:var(--font-type);font-size:.78rem;color:color-mix(in srgb,var(--paper) 75%,transparent);letter-spacing:.06em}
+.frame .no{position:absolute;right:10px;top:8px;font-family:var(--font-type);font-size:.72rem;color:var(--amber);font-variant-numeric:tabular-nums}
+
+/* series */
+.seasons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:860px){.seasons{grid-template-columns:1fr}}
+.season{position:relative;padding:26px 24px 28px;border:1px solid var(--line);background:var(--stage);display:grid;gap:12px;align-content:start;min-width:0}
+.season .tag{font-family:var(--font-type);font-size:var(--step--1);text-transform:uppercase;letter-spacing:.1em;color:var(--dust);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.season .tag b{color:var(--amber);font-weight:700}
+.season p{color:var(--dust)}
+.casefile{background:color-mix(in srgb,var(--amber) 9%,var(--stage));border-color:color-mix(in srgb,var(--amber) 45%,var(--line))}
+.codename{font-family:var(--font-type);font-size:var(--step-1);color:var(--paper)}
+.redact{display:inline-block;background:var(--redact);color:transparent;border-radius:1px;width:3.4ch;height:.95em;vertical-align:-.1em;animation:flicker 6s infinite}
+@keyframes flicker{0%,92%,100%{opacity:1}94%{opacity:.75}96%{opacity:1}97%{opacity:.85}}
+.stamp{position:absolute;right:16px;top:44px;font-family:var(--font-type);font-weight:700;font-size:.8rem;letter-spacing:.14em;color:var(--amber);border:2px solid var(--amber);padding:3px 8px;transform:rotate(-8deg);opacity:.85}
+.open-slot{border-style:dashed;background:transparent}
+.open-slot h3{color:var(--paper)}
+
+/* seek */
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+@media (max-width:1000px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.tile-cta{text-decoration:none;color:var(--paper);background:color-mix(in srgb,var(--amber) 10%,var(--ink))}
+.tile-cta .go{font-family:var(--font-type);font-size:var(--step--1);color:var(--amber);letter-spacing:.06em}
+.tile-cta:hover{background:color-mix(in srgb,var(--amber) 18%,var(--stage))}
+@media (max-width:520px){.tiles{grid-template-columns:1fr}}
+.tile{background:var(--ink);padding:28px 24px 30px;display:grid;gap:12px;align-content:start;min-width:0;transition:background .3s}
+.tile svg{width:46px;height:46px;color:var(--amber);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.tile:hover{background:var(--stage)}
+.tile:hover svg{transform:translateY(-4px) scale(1.08)}
+.tile p{color:var(--dust)}
+.criteria{margin-top:40px;display:grid;gap:16px}
+.chips{display:flex;flex-wrap:wrap;gap:10px;list-style:none;padding:0;margin:0}
+.chips li{font-family:var(--font-type);font-size:var(--step--1);padding:8px 14px;border:1px solid var(--line);border-radius:999px;color:var(--paper);background:var(--stage)}
+.who{max-width:62ch;color:var(--dust);margin-top:8px}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;counter-reset:step;list-style:none;padding:0;margin:0}
+@media (max-width:960px){.steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:560px){.steps{grid-template-columns:1fr}}
+.steps li{display:grid;gap:10px;align-content:start;padding-top:18px;border-top:2px solid var(--line);min-width:0}
+.steps li.key{border-top-color:var(--amber)}
+.num{font-family:var(--font-display);font-weight:900;font-size:3.2rem;line-height:1;color:var(--amber);font-variant-numeric:tabular-nums}
+.steps p{color:var(--dust)}
+.regno{font-family:var(--font-type);font-size:.95rem;border:1px dashed var(--amber);padding:10px 12px;color:var(--paper);display:grid;gap:2px}
+.regno small{color:var(--dust);font-size:.75rem;letter-spacing:.08em;text-transform:uppercase}
+.next{margin-top:44px;padding:24px;border-left:3px solid var(--teal);background:var(--stage);max-width:78ch;display:grid;gap:8px}
+.next p{color:var(--dust)}
+
+/* form */
+.formcard{border:1px solid var(--line);background:var(--stage);padding:clamp(20px,4vw,40px);display:grid;gap:26px}
+.notice{font-family:var(--font-type);font-size:var(--step--1);color:var(--amber-ink);background:var(--amber);padding:10px 14px;letter-spacing:.03em}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 22px}
+@media (max-width:700px){.grid2{grid-template-columns:1fr}}
+.full{grid-column:1/-1}
+.field{display:grid;gap:6px;min-width:0}
+label,.legend{font-family:var(--font-type);font-size:var(--step--1);text-transform:uppercase;letter-spacing:.08em;color:var(--dust)}
+.req{color:var(--amber)}
+input[type=text],input[type=email],input[type=tel],select,textarea{width:100%;font:inherit;font-size:1rem;color:var(--paper);background:var(--ink);border:1px solid var(--line);border-radius:2px;padding:11px 12px}
+textarea{min-height:190px;resize:vertical;font-family:var(--font-body);line-height:1.5}
+#regno{font-family:var(--font-type);letter-spacing:.06em}
+input:focus,select:focus,textarea:focus{border-color:var(--amber);outline:none;box-shadow:0 0 0 3px color-mix(in srgb,var(--amber) 22%,transparent)}
+.hint{font-size:.85rem;color:var(--dust)}
+.count{font-family:var(--font-type);font-size:.8rem;color:var(--dust);text-align:right;font-variant-numeric:tabular-nums}
+.count.over{color:var(--bad)}
+input[type=file]{font-family:var(--font-type);font-size:.85rem;color:var(--dust)}
+fieldset{border:0;padding:0;margin:0;display:grid;gap:10px}
+.check{display:flex;gap:12px;align-items:flex-start;font-family:var(--font-body);font-size:1rem;text-transform:none;letter-spacing:0;color:var(--paper)}
+.check input{margin-top:.3em;width:18px;height:18px;accent-color:var(--amber);flex:none}
+.invalid{border-color:var(--bad)!important}
+.result{padding:16px 18px;border:1px solid var(--line);background:var(--ink);display:grid;gap:8px}
+.result.bad{border-color:var(--bad)}
+.result.good{border-color:var(--ok)}
+.result ul{margin:0;padding-left:1.2em;color:var(--dust)}
+.result strong{font-family:var(--font-display);font-size:1.3rem;letter-spacing:.04em;text-transform:uppercase}
+.result.bad strong{color:var(--bad)}
+.result.good strong{color:var(--ok)}
+
+/* terms */
+.draft{font-family:var(--font-type);font-size:var(--step--1);border:1.5px dashed var(--amber);color:var(--paper);padding:12px 14px;max-width:78ch}
+.terms{display:grid;max-width:84ch;border-top:1px solid var(--line)}
+details{border-bottom:1px solid var(--line)}
+summary{cursor:pointer;list-style:none;display:flex;gap:16px;align-items:baseline;padding:16px 0;font-family:var(--font-display);font-weight:700;font-size:1.25rem;text-transform:uppercase;letter-spacing:.04em}
+summary::-webkit-details-marker{display:none}
+summary .tn{font-family:var(--font-type);font-weight:400;font-size:.85rem;color:var(--amber);min-width:2.2ch;font-variant-numeric:tabular-nums}
+summary::after{content:"+";margin-left:auto;color:var(--amber);font-family:var(--font-type)}
+details[open] summary::after{content:"−"}
+details > div{padding:0 0 18px calc(2.2ch + 16px);color:var(--dust);display:grid;gap:10px}
+details ul{margin:0;padding-left:1.1em}
+.ph{font-family:var(--font-type);color:var(--amber);font-size:.92em}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding-block:36px}
+footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;font-family:var(--font-type);font-size:var(--step--1);color:var(--dust)}
+
+/* reveal: visible at rest; JS adds a short lift when a block enters view */
+.reveal.in{animation:lift .7s cubic-bezier(.2,.8,.2,1) both}
+@keyframes lift{from{transform:translateY(16px);opacity:.35}to{transform:none;opacity:1}}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  .hero h1 .l2{color:var(--amber)}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-badge" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 2l7.5 3v6c0 5-3.2 8.6-7.5 11-4.3-2.4-7.5-6-7.5-11V5z"/><path d="M12 7.6l1.3 2.7 3 .4-2.2 2 .6 2.9L12 14.2l-2.7 1.4.6-2.9-2.2-2 3-.4z"/></g></symbol>
+    <symbol id="i-door" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M3 22h18"/><path d="M6 22V3h10v19"/><path d="M16 4.5l4 1.6V22"/><circle cx="13" cy="13" r=".9" fill="currentColor"/></g></symbol>
+    <symbol id="i-store" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M3 10h18"/><path d="M4 10l2-6h12l2 6"/><path d="M5 10v11h14V10"/><path d="M10 21v-6h4v6"/></g></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M3 5c3-1.5 6-1.5 9 1 3-2.5 6-2.5 9-1v14c-3-1.5-6-1.5-9 1-3-2.5-6-2.5-9-1z"/><path d="M12 6v14"/></g></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M12 20.5s-8-4.6-8-11.2A4.4 4.4 0 0 1 12 6.6a4.4 4.4 0 0 1 8 2.7c0 6.6-8 11.2-8 11.2z"/><path d="M12 9.5v5M9.5 12h5"/></g></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5v4M8.5 21.5h7"/></g></symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2.5 13.5l19-8-5.5 14-3.5-5.5z"/><path d="M12.5 14l9-8.5"/></g></symbol>
+    <symbol id="i-gavel" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M13.5 3.5l6.5 6.5"/><path d="M10.5 6.5l6.5 6.5"/><path d="M12 5l-4.5 4.5 6.5 6.5L18.5 11.5"/><path d="M9.5 12.5L3 19l2 2 6.5-6.5"/><path d="M13 21h8"/></g></symbol>
+    <symbol id="i-stool" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><ellipse cx="12" cy="6" rx="6" ry="2"/><path d="M12 8v10"/><path d="M7 21l5-3 5 3"/><path d="M2 12h20"/></g></symbol>
+    <symbol id="i-family" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M2.5 11L12 3.5l9.5 7.5"/><path d="M5 9.5V21h14V9.5"/><circle cx="9.5" cy="13" r="1.7"/><circle cx="15" cy="14.2" r="1.3"/><path d="M6.8 21v-2.6a2.7 2.7 0 0 1 5.4 0V21"/><path d="M12.9 21v-1.8a2.1 2.1 0 0 1 4.2 0V21"/></g></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M4 20l4.2-1L19 8.2 15.8 5 5 15.8z"/><path d="M13.8 7l3.2 3.2"/><path d="M4 20h16"/></g></symbol>
+  </defs>
+</svg>
+
+<canvas id="grain" aria-hidden="true"></canvas>
+
+<header class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top">Untold <span>Unsung</span></a>
+    <nav class="nav-links" aria-label="Sections">
+      <a href="#series">The series</a>
+      <a href="#seek">Stories we seek</a>
+      <a href="#how">How to submit</a>
+      <a href="#terms">Terms</a>
+    </nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero" aria-labelledby="h-title">
+    <div class="beam" aria-hidden="true"></div>
+    <div class="wrap">
+      <p class="kicker">A limited series of stories based on true events<span class="caret" aria-hidden="true"></span></p>
+      <h1 id="h-title"><span class="l1">Untold Stories</span><span class="l2">Unsung Heroes</span></h1>
+      <p class="lede">People from communities history overlooked took real risks, beat long odds, and changed what came after. We are collecting their stories. Each year we choose one or two to bring to the screen.</p>
+      <div class="ctas">
+        <a class="btn btn-solid" href="#submit">Share a story</a>
+        <a class="btn btn-ghost" href="#seek">See what we look for</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="strip" aria-hidden="true">
+    <div class="track" id="track">
+      <figure class="frame"><span class="no">01A</span><svg><use href="#i-badge"/></svg><figcaption>A precinct</figcaption></figure>
+      <figure class="frame"><span class="no">02A</span><svg><use href="#i-book"/></svg><figcaption>A classroom</figcaption></figure>
+      <figure class="frame"><span class="no">03A</span><svg><use href="#i-stool"/></svg><figcaption>A lunch counter</figcaption></figure>
+      <figure class="frame"><span class="no">04A</span><svg><use href="#i-heart"/></svg><figcaption>A clinic</figcaption></figure>
+      <figure class="frame"><span class="no">05A</span><svg><use href="#i-plane"/></svg><figcaption>A flight line</figcaption></figure>
+      <figure class="frame"><span class="no">06A</span><svg><use href="#i-gavel"/></svg><figcaption>A courtroom</figcaption></figure>
+      <figure class="frame"><span class="no">07A</span><svg><use href="#i-store"/></svg><figcaption>A storefront</figcaption></figure>
+      <figure class="frame"><span class="no">08A</span><svg><use href="#i-mic"/></svg><figcaption>A stage</figcaption></figure>
+      <figure class="frame"><span class="no">09A</span><svg><use href="#i-door"/></svg><figcaption>A first day</figcaption></figure>
+    </div>
+  </div>
+
+  <section id="series" aria-labelledby="h-series">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">The series</p>
+        <h2 id="h-series">One season. One true story.</h2>
+        <p class="lede">Each season follows a single true story from start to finish over several episodes. Every story follows a person who met serious obstacles with courage and hard work, and in doing so protected the rights of others or opened doors for the generations that followed. Every season carries the same message. If they did it, so can you.</p>
+        <p class="lede">We choose one or two new stories every year. Each story is based on true events. The key facts stay true, and some scenes, dialogue, and characters are created for drama.</p>
+      </div>
+      <div class="seasons">
+        <article class="season casefile reveal">
+          <div class="tag"><span>Season one</span><b>In development</b></div>
+          <span class="stamp" aria-hidden="true">Case file</span>
+          <p class="codename">Code name <span class="redact" aria-label="redacted"></span>-83</p>
+          <p>New York, the 1960s. A young veteran his own family believed had gone wrong.</p>
+        </article>
+        <article class="season open-slot reveal">
+          <div class="tag"><span>Season two</span><b>Open</b></div>
+          <h3>Your story could be next</h3>
+          <p>Submissions for the next season open once our legal review is complete.</p>
+        </article>
+        <article class="season open-slot reveal">
+          <div class="tag"><span>Every year after</span><b>Open</b></div>
+          <h3>One or two new stories</h3>
+          <p>Stories submitted here are the source for every future season.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <section id="seek" aria-labelledby="h-seek" style="background:var(--stage)">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Stories we are looking for</p>
+        <h2 id="h-seek">Real people. Real risk. Lasting change.</h2>
+      </div>
+      <div class="tiles">
+        <article class="tile reveal"><svg aria-hidden="true"><use href="#i-badge"/></svg><h3>The protector</h3><p>Police officers, firefighters, and service members who put themselves in harm's way, often without credit.</p></article>
+        <article class="tile reveal"><svg aria-hidden="true"><use href="#i-door"/></svg><h3>The first through the door</h3><p>People who integrated a school, a workplace, a team, or a profession.</p></article>
+        <article class="tile reveal"><svg aria-hidden="true"><use href="#i-store"/></svg><h3>The builder</h3><p>Founders and workers who built a business or an institution against the odds.</p></article>
+        <article class="tile reveal"><svg aria-hidden="true"><use href="#i-book"/></svg><h3>The teacher</h3><p>Teachers, coaches, mentors, and pastors who changed the course of other lives.</p></article>
+        <article class="tile reveal"><svg aria-hidden="true"><use href="#i-heart"/></svg><h3>The healer</h3><p>Doctors, nurses, and caregivers who served when others would not.</p></article>
+        <article class="tile reveal"><svg aria-hidden="true"><use href="#i-mic"/></svg><h3>The voice</h3><p>Organizers, artists, and writers who spoke up when it cost them.</p></article>
+        <article class="tile reveal"><svg aria-hidden="true"><use href="#i-family"/></svg><h3>The family</h3><p>Fathers, mothers, and grandparents who held a family together through hard times and raised children who went on to succeed.</p></article>
+        <a class="tile tile-cta reveal" href="#submit"><svg aria-hidden="true"><use href="#i-pen"/></svg><h3>Your story</h3><p>Know someone who belongs here? Share their story.</p><span class="go">Share a story &rarr;</span></a>
+      </div>
+      <div class="criteria reveal">
+        <p class="legend">A strong story has</p>
+        <ul class="chips">
+          <li>Events that really happened</li>
+          <li>Records that back it up</li>
+          <li>Real risk or sacrifice</li>
+          <li>A turning point</li>
+          <li>An impact that lasted</li>
+          <li>A story never fully told</li>
+        </ul>
+        <p class="who">We welcome stories from Black, Hispanic and Latino, Asian American, Native American, and immigrant communities, and from anyone who overcame prejudice or hardship to succeed.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="how" aria-labelledby="h-how">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Before you submit</p>
+        <h2 id="h-how">Four steps to share a story</h2>
+      </div>
+      <ol class="steps">
+        <li class="reveal"><span class="num">1</span><h3>Write it down</h3><p>Tell the story in your own words. Include names, places, and dates where you know them. The form takes a summary of up to 1,000 words.</p></li>
+        <li class="reveal key"><span class="num">2</span><h3>Register your copyright</h3><p>Register your written story with the United States Copyright Office before you submit. We cannot accept a story without a registration number. Registration can take several months, so start early.</p>
+          <div class="regno"><small>Example registration number</small>TXu 2-345-678</div>
+          <a href="https://www.copyright.gov/registration/" target="_blank" rel="noopener">Register at copyright.gov</a></li>
+        <li class="reveal"><span class="num">3</span><h3>Gather your proof</h3><p>Collect copies of photographs, letters, news clippings, service records, or court papers. Send copies only. Keep your originals.</p></li>
+        <li class="reveal"><span class="num">4</span><h3>Submit the form</h3><p>Enter your registration number, a summary of the story, and your agreement to the submission terms.</p></li>
+      </ol>
+      <div class="next reveal">
+        <h3>What happens next</h3>
+        <p>Our team and our legal counsel review every complete submission. If your story moves forward, we will contact you to discuss a written agreement. If you do not hear from us, your story was not selected this cycle, and you remain free to share it anywhere else.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="submit" aria-labelledby="h-submit" style="background:var(--stage)">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">Share a story</p>
+        <h2 id="h-submit">Tell us who they were</h2>
+      </div>
+      <form class="formcard" id="storyform" novalidate>
+        <p class="notice">Preview only. Submissions open after our legal review is complete. Nothing you enter here is sent.</p>
+        <div class="grid2">
+          <div class="field"><label for="fname">Your full name <span class="req">*</span></label><input type="text" id="fname" autocomplete="name"></div>
+          <div class="field"><label for="email">Email <span class="req">*</span></label><input type="email" id="email" autocomplete="email"></div>
+          <div class="field"><label for="phone">Phone</label><input type="tel" id="phone" autocomplete="tel"></div>
+          <div class="field"><label for="title">Story title <span class="req">*</span></label><input type="text" id="title"></div>
+          <div class="field"><label for="whose">Whose story is it? <span class="req">*</span></label>
+            <select id="whose"><option value="">Choose one</option><option>My own story</option><option>A family member's story</option><option>Someone else's story, with their permission</option></select></div>
+          <div class="field"><label for="living">Are the main people living? <span class="req">*</span></label>
+            <select id="living"><option value="">Choose one</option><option>Yes, all living</option><option>Some are living</option><option>No, all have passed</option><option>Not sure</option></select></div>
+          <div class="field"><label for="era">When did it happen? <span class="req">*</span></label>
+            <select id="era"><option value="">Choose a decade</option><option>Before 1940</option><option>1940s</option><option>1950s</option><option>1960s</option><option>1970s</option><option>1980s</option><option>1990s</option><option>2000s or later</option></select></div>
+          <div class="field"><label for="where">Where did it happen? <span class="req">*</span></label><input type="text" id="where" placeholder="City and state"></div>
+          <div class="field full"><label for="summary">Summary of the story <span class="req">*</span></label>
+            <textarea id="summary" placeholder="Who they were, what they faced, what they risked, and what changed because of them."></textarea>
+            <div class="count" id="count" aria-live="polite">0 of 1,000 words</div></div>
+          <div class="field"><label for="regno">Copyright registration number <span class="req">*</span></label><input type="text" id="regno" placeholder="TXu 2-345-678" autocomplete="off"><span class="hint">From your certificate of registration.</span></div>
+          <div class="field"><label for="files">Copies of supporting records</label><input type="file" id="files" multiple accept=".pdf,.jpg,.jpeg,.png"><span class="hint">PDF or image files. Copies only.</span></div>
+        </div>
+        <fieldset>
+          <p class="legend">Your agreement <span class="req">*</span></p>
+          <label class="check" for="c-age"><input type="checkbox" id="c-age">I am 18 or older.</label>
+          <label class="check" for="c-own"><input type="checkbox" id="c-own">I wrote this story, or I have written permission from its owner to submit it.</label>
+          <label class="check" for="c-reg"><input type="checkbox" id="c-reg">I registered the copyright for my written story, and the number above is correct.</label>
+          <label class="check" for="c-terms"><input type="checkbox" id="c-terms">I have read and agree to the submission terms below.</label>
+        </fieldset>
+        <div><button class="btn btn-solid" type="submit">Submit story</button></div>
+        <div class="result" id="result" hidden aria-live="polite"></div>
+      </form>
+    </div>
+  </section>
+
+  <section id="terms" aria-labelledby="h-terms">
+    <div class="wrap">
+      <div class="sec-head reveal">
+        <p class="eyebrow">The fine print</p>
+        <h2 id="h-terms">Submission terms and disclaimers</h2>
+        <p class="draft">Draft for review by legal counsel. These terms are not yet in effect. Items in brackets will be completed by counsel.</p>
+      </div>
+      <div class="terms">
+        <details open><summary><span class="tn">01</span>Who we are</summary><div><p>This website is operated by <span class="ph">[Company legal name]</span> ("we" or "us"). Untold Stories and Unsung Heroes is the name of our series and our story program.</p></div></details>
+        <details><summary><span class="tn">02</span>Who may submit</summary><div><p>You must be 18 or older. Submit only stories you wrote yourself or have written permission to submit.</p></div></details>
+        <details><summary><span class="tn">03</span>Copyright registration is required</summary><div><p>Before you submit, you must register your written story with the United States Copyright Office and give us the registration number. Registration is your responsibility and at your own cost.</p><p>Copyright protects the way you wrote your story. It does not protect facts, historical events, or general ideas, which anyone may use.</p></div></details>
+        <details><summary><span class="tn">04</span>No confidential relationship</summary><div><p>Submitting a story does not create a confidential, fiduciary, or other special relationship between you and us.</p></div></details>
+        <details><summary><span class="tn">05</span>Similar stories and projects</summary><div><p>We receive many stories and develop our own projects. Material similar to yours may already exist, may be in development, or may come to us from others. A project that resembles your submission does not by itself mean we used it, and we owe you nothing because of a resemblance. We use a submitted story only under a signed agreement with its owner.</p></div></details>
+        <details><summary><span class="tn">06</span>No obligation</summary><div><p>We are not required to review, respond to, return, use, or pay for any submission.</p></div></details>
+        <details><summary><span class="tn">07</span>Agreements must be in writing</summary><div><p>Any use of your story, including life rights, an option, or a purchase of rights, requires a separate written agreement signed by you and by us. Nothing on this website or in any email from us is an offer.</p></div></details>
+        <details><summary><span class="tn">08</span>What you promise us</summary><div><p>By submitting, you confirm that:</p><ul><li>The story is true to the best of your knowledge.</li><li>You wrote it, or you have written permission from the person who did.</li><li>Where required, you have permission from living people who play a major role, or from the families or estates of those who have died.</li><li>It does not defame anyone, invade anyone's privacy, or include material owned by someone else.</li></ul></div></details>
+        <details><summary><span class="tn">09</span>Dramatization</summary><div><p>If a story is selected, the series will present it as based on true events. We keep the key facts accurate. To tell the story on screen, we may add scenes that did not happen, write dialogue, combine or create characters, change names and places, and compress or reorder time.</p></div></details>
+        <details><summary><span class="tn">10</span>Your materials</summary><div><p>Send copies, never originals. We do not return submissions. We may keep copies for our records and to respond to any claim.</p></div></details>
+        <details><summary><span class="tn">11</span>Privacy</summary><div><p>We use your contact details and submission only to evaluate your story and to contact you. We share them only with our legal counsel and, under a confidentiality agreement, with production partners who are evaluating your story. We do not sell your information. We keep submissions for <span class="ph">[retention period]</span>.</p></div></details>
+        <details><summary><span class="tn">12</span>Limits on remedies</summary><div><p>If you believe we used your submission in breach of these terms, your remedy is limited to money damages. You may not seek to stop the development, production, or distribution of any work. <span class="ph">[Counsel to confirm.]</span></p></div></details>
+        <details><summary><span class="tn">13</span>Governing law</summary><div><p>These terms are governed by the laws of the State of <span class="ph">[State]</span>.</p></div></details>
+        <details><summary><span class="tn">14</span>Not legal advice</summary><div><p>Nothing on this website is legal advice. You may want to speak with an attorney before you submit.</p></div></details>
+        <details><summary><span class="tn">15</span>Changes to these terms</summary><div><p>We may update these terms. The version in effect when you submit applies to your submission. Last updated <span class="ph">[date]</span>.</p></div></details>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Untold Stories and Unsung Heroes</span>
+    <span>untoldunsung.com</span>
+    <span>© 2026 <span class="ph">[Company legal name]</span>. All rights reserved.</span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Duplicate the filmstrip so the loop is seamless
+  var track = document.getElementById('track');
+  if (track) track.innerHTML += track.innerHTML;
+
+  // Film grain
+  var cv = document.getElementById('grain');
+  var ctx = cv && cv.getContext ? cv.getContext('2d') : null;
+  if (ctx) {
+    var W = 180, H = 110; cv.width = W; cv.height = H;
+    var img = ctx.createImageData(W, H);
+    function draw(){
+      var d = img.data;
+      for (var i = 0; i < d.length; i += 4) {
+        var v = (Math.random() * 255) | 0;
+        d[i] = d[i+1] = d[i+2] = v; d[i+3] = 255;
+      }
+      ctx.putImageData(img, 0, 0);
+    }
+    draw();
+    if (!reduce) {
+      var last = 0;
+      (function loop(t){
+        if (t - last > 70) { draw(); last = t; }
+        requestAnimationFrame(loop);
+      })(0);
+    }
+  }
+
+  // Reveal on scroll (content is visible at rest; this only adds a lift)
+  if (!reduce && 'IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){ if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, {rootMargin: '0px 0px -8% 0px'});
+    document.querySelectorAll('.reveal').forEach(function(el){
+      var r = el.getBoundingClientRect();
+      if (r.top > window.innerHeight) io.observe(el);
+    });
+  }
+
+  // Word counter
+  var summary = document.getElementById('summary'), count = document.getElementById('count');
+  function words(s){ var m = s.trim().match(/\S+/g); return m ? m.length : 0; }
+  function updateCount(){
+    var n = words(summary.value);
+    count.textContent = n.toLocaleString('en-US') + ' of 1,000 words';
+    count.classList.toggle('over', n > 1000);
+  }
+  summary.addEventListener('input', updateCount); updateCount();
+
+  // Validation (preview only; nothing is sent)
+  var REG = /^(TX|TXU|PA|PAU|VA|VAU|SR|SRU)\s?\d{1,2}-\d{3}-\d{3}$/i;
+  var form = document.getElementById('storyform'), out = document.getElementById('result');
+  var req = [
+    ['fname','Enter your full name.'],
+    ['email','Enter an email address we can reach you at.'],
+    ['title','Give your story a title.'],
+    ['whose','Choose whose story this is.'],
+    ['living','Tell us whether the main people are living.'],
+    ['era','Choose the decade when it happened.'],
+    ['where','Tell us where it happened.'],
+    ['summary','Write a summary of the story.']
+  ];
+  form.addEventListener('submit', function(ev){
+    ev.preventDefault();
+    var errs = [];
+    form.querySelectorAll('.invalid').forEach(function(el){ el.classList.remove('invalid'); });
+    req.forEach(function(r){
+      var el = document.getElementById(r[0]);
+      if (!el.value.trim()) { errs.push(r[1]); el.classList.add('invalid'); }
+    });
+    var em = document.getElementById('email');
+    if (em.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())) { errs.push('Check the email address. It should look like name@example.com.'); em.classList.add('invalid'); }
+    if (words(summary.value) > 1000) { errs.push('Shorten the summary to 1,000 words or fewer.'); summary.classList.add('invalid'); }
+    var rg = document.getElementById('regno');
+    if (!rg.value.trim()) { errs.push('Enter your copyright registration number. We cannot accept a story without one.'); rg.classList.add('invalid'); }
+    else if (!REG.test(rg.value.trim())) { errs.push('Check the registration number. It should look like TXu 2-345-678, as printed on your certificate.'); rg.classList.add('invalid'); }
+    [['c-age','Confirm you are 18 or older.'],['c-own','Confirm you wrote the story or have permission to submit it.'],['c-reg','Confirm you registered the copyright.'],['c-terms','Agree to the submission terms.']].forEach(function(c){
+      if (!document.getElementById(c[0]).checked) errs.push(c[1]);
+    });
+    out.hidden = false;
+    out.innerHTML = '';
+    var h = document.createElement('strong');
+    if (errs.length) {
+      out.className = 'result bad';
+      h.textContent = errs.length === 1 ? 'One thing to fix' : errs.length + ' things to fix';
+      var ul = document.createElement('ul');
+      errs.forEach(function(e){ var li = document.createElement('li'); li.textContent = e; ul.appendChild(li); });
+      out.appendChild(h); out.appendChild(ul);
+    } else {
+      out.className = 'result good';
+      h.textContent = 'Ready to submit';
+      var p = document.createElement('p');
+      p.textContent = 'Everything is complete. This is a preview, so nothing was sent. Submissions open after our legal review.';
+      out.appendChild(h); out.appendChild(p);
+    }
+    out.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'nearest'});
+  });
+})();
+</script>
+
+</body>
+</html>
