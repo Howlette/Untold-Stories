@@ -139,12 +139,15 @@ async function act(fn, okText){
   catch(e){ toast(e.message, true); }
 }
 
-var COUNTS = {};
+var COUNTS = {}, TCOUNTS = {};
+function groupOf(stage){ var g = ME.groups.find(function(x){ return x[2].indexOf(stage) >= 0; }); return g ? g[0] : 'processing'; }
+function groupCount(g){ return g[2].reduce(function(a, k){ return a + (COUNTS[k] || 0); }, 0); }
+function statusText(s){ return s.stage === 'tracking' ? (s.tracking_status || 'Sent') : stageName(s.stage); }
 function navHtml(cur){
-  var role = ME.user.role, total = Object.values(COUNTS).reduce(function(a,b){ return a+b; }, 0);
+  var role = ME.user.role;
   var link = function(href, label, on, n, cls){ return '<a class="nl' + (cls ? ' ' + cls : '') + (on ? ' on' : '') + '" href="' + href + '"><span>' + esc(label) + '</span>' + (n !== undefined ? '<span class="n">' + n + '</span>' : '') + '</a>'; };
-  var h = '<div class="navgroup">Stories</div>' + link('#/', 'All submissions', cur === 'list' && !listState.stage, total);
-  ME.stages.forEach(function(s){ h += link('#/stage/' + s[0], s[1], cur === 'list' && listState.stage === s[0], COUNTS[s[0]] || 0, 'nsub'); });
+  var h = '<div class="navgroup">Stories</div>';
+  ME.groups.forEach(function(g){ h += link('#/g/' + g[0], g[1], cur === g[0], groupCount(g)); });
   if (role === 'admin') h += '<div class="navgroup">Production</div>' + link('#/recipients', 'Recipients', cur === 'recipients');
   if (role === 'admin' || role === 'legal') {
     h += '<div class="navgroup">Administration</div>';
@@ -156,21 +159,27 @@ function navHtml(cur){
 }
 
 // ---------- submissions list ----------
-var listState = { stage: '', q: '' };
+var listState = { group: 'processing', status: '', q: '' };
 async function viewList(){
-  navHtml('list');
-  var qs = new URLSearchParams(); if (listState.stage) qs.set('stage', listState.stage); if (listState.q) qs.set('q', listState.q);
-  var d = await api('submissions' + (qs.toString() ? '?' + qs : ''));
-  var total = Object.values(d.counts).reduce(function(a,b){return a+b;},0);
+  var g = ME.groups.find(function(x){ return x[0] === listState.group; }) || ME.groups[0];
+  navHtml(g[0]);
+  var isTrack = g[0] === 'tracking';
+  var qs = new URLSearchParams(); qs.set('group', g[0]);
+  if (listState.status) qs.set(isTrack ? 'tstatus' : 'stage', listState.status);
+  if (listState.q) qs.set('q', listState.q);
+  var d = await api('submissions?' + qs);
+  var options = isTrack ? ME.trackingStatuses.map(function(t){ return [t, t, TCOUNTS[t] || 0]; }) : g[2].map(function(k){ return [k, stageName(k), COUNTS[k] || 0]; });
+  var filter = '<select id="sfilter" aria-label="Status"><option value="">All statuses (' + (isTrack ? (COUNTS.tracking || 0) : groupCount(g)) + ')</option>' + options.map(function(o){ return '<option value="' + esc(o[0]) + '"' + (listState.status === o[0] ? ' selected' : '') + '>' + esc(o[1]) + ' (' + o[2] + ')</option>'; }).join('') + '</select>';
   var modeNote = ME.submissionsMode === 'test' ? '<p class="lock">The public form is in test mode. New submissions are marked as tests until submissions open.</p>'
     : ME.submissionsMode === 'closed' ? '<p class="lock">The public form is closed. No new submissions can arrive.</p>' : '';
   var mailNote = ME.mailConfigured ? '' : '<p class="lock">Email is not connected yet. Notices are recorded here but not delivered.</p>';
-  app.innerHTML = '<h1>' + (listState.stage ? esc(stageName(listState.stage)) : 'All submissions') + '</h1><p class="sub">' + (listState.stage ? d.submissions.length + ' ' + (d.submissions.length === 1 ? 'story' : 'stories') + ' at this stage.' : total + ' ' + (total === 1 ? 'story' : 'stories') + ' received.') + '</p>' + modeNote + mailNote +
-    '<div class="row" style="margin-bottom:12px"><input id="q" type="search" placeholder="Search receipt, title, or name" value="'+esc(listState.q)+'" style="min-width:260px"><button class="ghost" id="qgo">Search</button></div>' +
-    '<div class="card wrap-x">' + (d.submissions.length ? '<table><thead><tr><th>Receipt</th><th>Story title</th><th>Submitter</th><th>Received</th><th>Stage</th><th>Reviews</th></tr></thead><tbody>' +
-      d.submissions.map(function(s){ return '<tr class="link" data-r="'+esc(s.receipt)+'"><td class="mono">'+esc(s.receipt)+(s.is_test?'<span class="test">test</span>':'')+'</td><td>'+esc(s.title)+'</td><td>'+esc(s.name)+'</td><td>'+when(s.received_at)+'</td><td><span class="pill '+(s.stage==='closed'?'':'amber')+'">'+esc(stageName(s.stage))+'</span>'+(s.outcome && s.stage==='closed'?' <span class="small muted">'+esc(s.outcome)+'</span>':'')+'</td><td>'+s.review_count+'</td></tr>'; }).join('') +
+  app.innerHTML = '<h1>' + esc(g[1]) + '</h1><p class="sub">' + d.submissions.length + ' ' + (d.submissions.length === 1 ? 'story' : 'stories') + (listState.status ? ' with status ' + esc(isTrack ? listState.status : stageName(listState.status)) : '') + '.</p>' + (g[0] === 'processing' ? modeNote + mailNote : '') +
+    '<div class="row" style="margin-bottom:12px">' + filter + '<input id="q" type="search" placeholder="Search receipt, title, or name" value="'+esc(listState.q)+'" style="min-width:240px"><button class="ghost" id="qgo">Search</button></div>' +
+    '<div class="card wrap-x">' + (d.submissions.length ? '<table><thead><tr><th>Receipt</th><th>Story title</th><th>Submitter</th><th>Received</th><th>Status</th><th>Reviews</th></tr></thead><tbody>' +
+      d.submissions.map(function(s){ return '<tr class="link" data-r="'+esc(s.receipt)+'"><td class="mono">'+esc(s.receipt)+(s.is_test?'<span class="test">test</span>':'')+'</td><td>'+esc(s.title)+'</td><td>'+esc(s.name)+'</td><td>'+when(s.received_at)+'</td><td><span class="pill '+(s.stage==='closed'?'':'amber')+'">'+esc(statusText(s))+'</span>'+(s.outcome && s.stage==='closed'?' <span class="small muted">'+esc(s.outcome)+'</span>':'')+'</td><td>'+s.review_count+'</td></tr>'; }).join('') +
       '</tbody></table>' : '<p class="muted">No submissions here yet.</p>') + '</div>';
   app.querySelectorAll('tr.link').forEach(function(tr){ tr.onclick = function(){ location.hash = '#/s/' + tr.dataset.r; }; });
+  document.getElementById('sfilter').onchange = function(){ listState.status = this.value; route(); };
   var q = document.getElementById('q');
   document.getElementById('qgo').onclick = function(){ listState.q = q.value.trim(); route(); };
   q.onkeydown = function(e){ if (e.key === 'Enter') { listState.q = q.value.trim(); route(); } };
@@ -180,29 +189,32 @@ async function viewList(){
 var SCORE_LABELS = { true_documented:'True and documented', real_risk:'Real risk', turning_point:'A turning point', lasting_impact:'Lasting impact', message:'"If they did it, so can you"', screen_potential:'Screen potential' };
 var NOTICE_LABELS = { receipt:'Receipt', not_selected:'Not selected', selected:'Selected', signing_request:'Signing request', milestone:'Milestone', closing:'Closing' };
 var FILE_LABELS = { story:'Story', record:'Supporting record', package:'Package draft', agreement:'Signed agreement', other:'Other' };
-var ACTION_LABELS = { received:'Received', stage:'Stage changed', review:'Review recorded', note:'Note', assigned:'Assigned', unassigned:'Unassigned', file:'File added', file_opened:'File opened', agreement:'Agreement', package:'Package item updated', notice:'Notice', recipient_added:'Recipient added', recipient_removed:'Recipient removed', send_updated:'Send updated', exported:'Record exported' };
+var ACTION_LABELS = { received:'Received', stage:'Stage changed', review:'Review recorded', note:'Note', assigned:'Assigned', unassigned:'Unassigned', file:'File added', file_opened:'File opened', agreement:'Agreement', package:'Package item updated', notice:'Notice', recipient_added:'Recipient added', recipient_removed:'Recipient removed', send_updated:'Send updated', exported:'Record exported', tracking_status:'Tracking status changed', password_changed:'Password changed' };
 
 async function viewSubmission(receipt){
-  navHtml('list');
   var d = await api('submissions/' + encodeURIComponent(receipt));
+  navHtml(groupOf(d.submission.stage));
   var s = d.submission, role = ME.user.role, admin = role === 'admin', legal = role === 'legal';
   var keys = ME.stages.map(function(x){return x[0];}), iNow = keys.indexOf(s.stage);
   var next = s.stage !== 'closed' && iNow < keys.length - 2 ? keys[iNow+1] : null;
-  if (s.stage === 'selection') next = 'signoff';
   var prev = iNow > 0 && s.stage !== 'closed' ? keys[iNow-1] : null;
   var files = d.files;
   var agreementFiles = files.filter(function(f){ return f.kind === 'agreement'; });
   var html = '';
-  html += '<p class="small"><a href="#/">← All submissions</a></p>';
-  html += '<h1>' + esc(s.title) + '</h1><p class="sub"><span class="mono">' + esc(s.receipt) + '</span>' + (s.is_test ? '<span class="test">test submission</span>' : '') + ' · received ' + when(s.received_at) + ' · <span class="pill amber">' + esc(stageName(s.stage)) + '</span>' + (s.outcome ? ' <span class="pill">' + esc(s.outcome) + '</span>' : '') + '</p>';
+  html += '<p class="small"><a href="#/g/' + groupOf(s.stage) + '">← ' + esc((ME.groups.find(function(g){ return g[0] === groupOf(s.stage); }) || [0,'Back'])[1]) + '</a></p>';
+  html += '<h1>' + esc(s.title) + '</h1><p class="sub"><span class="mono">' + esc(s.receipt) + '</span>' + (s.is_test ? '<span class="test">test submission</span>' : '') + ' · received ' + when(s.received_at) + ' · <span class="pill amber">' + esc(statusText(s)) + '</span>' + (s.outcome ? ' <span class="pill">' + esc(s.outcome) + '</span>' : '') + '</p>';
   html += '<ol class="steps">' + ME.stages.map(function(x, i){ return '<li class="' + (x[0]===s.stage ? 'now' : (i < iNow ? 'done' : '')) + '">' + esc(x[1]) + '</li>'; }).join('') + '</ol>';
 
   // Stage actions
   if (admin || (legal && s.stage === 'legal')) {
     html += '<div class="card"><h2>Move this story</h2>';
-    if (s.stage === 'selection') {
-      html += '<p class="small muted">Your decision. Selecting moves the story to rights sign-off. Not selecting closes the file; send the not-selected notice below.</p>';
-      html += '<div class="row"><input id="stnote" placeholder="Note (optional)" style="min-width:260px"><button id="sel">Select for development</button>' + (admin ? '<button class="danger" id="notsel">Not selected</button>' : '') + '</div>';
+    if (s.stage === 'legal' && admin) {
+      html += '<p class="small muted">Your decision once legal review is done. Selecting moves the story to Sign off. Not selecting closes the file; send the not-selected notice below.</p>';
+      html += '<div class="row"><input id="stnote" placeholder="Note (optional)" style="min-width:260px"><button id="sel">Select for development</button><button class="danger" id="notsel">Not selected</button><button class="ghost" id="back">Back to ' + esc(stageName(prev)) + '</button></div>';
+    } else if (s.stage === 'tracking' && admin) {
+      html += '<p class="small muted">Overall status of this story with the agents and producers it was sent to.</p>';
+      html += '<div class="row"><select id="tstat">' + ME.trackingStatuses.map(function(t){ return '<option' + ((s.tracking_status || 'Sent') === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select><input id="stnote" placeholder="Note (optional)" style="min-width:240px"><button id="tsave">Update status</button><button class="ghost" id="back">Back to ' + esc(stageName(prev)) + '</button></div>';
+      html += '<details style="margin-top:10px"><summary class="small">Close this file</summary><div class="row" style="margin-top:8px"><select id="outcome"><option>Finished</option><option>Withdrawn</option><option>Not selected</option></select><button class="danger" id="close">Close file</button></div></details>';
     } else if (s.stage === 'closed') {
       html += admin ? '<div class="row"><input id="stnote" placeholder="Reason for reopening" style="min-width:260px"><button class="ghost" id="reopen">Reopen at Received</button></div>' : '<p class="muted">Closed.</p>';
     } else {
@@ -211,8 +223,8 @@ async function viewSubmission(receipt){
       if (next === 'tracking' && !d.sends.some(function(x){ return x.approved; })) gate = 'Approve at least one recipient first.';
       html += (gate ? '<p class="lock">' + esc(gate) + '</p>' : '');
       html += '<div class="row"><input id="stnote" placeholder="Note (optional)" style="min-width:260px">' +
-        (next && (admin || legal) ? '<button id="fwd"' + (gate ? ' disabled' : '') + '>Move to ' + esc(stageName(next)) + '</button>' : '') +
-        (prev && admin ? '<button class="ghost" id="back">Back to ' + esc(stageName(prev)) + '</button>' : '') + '</div>';
+        (next && admin ? '<button id="fwd"' + (gate ? ' disabled' : '') + '>Move to ' + esc(stageName(next)) + '</button>' : '') +
+        (prev && (admin || legal) ? '<button class="ghost" id="back">Back to ' + esc(stageName(prev)) + '</button>' : '') + '</div>';
       if (admin) html += '<details style="margin-top:10px"><summary class="small">Close this file</summary><div class="row" style="margin-top:8px"><select id="outcome"><option>Not selected</option><option>Withdrawn</option><option>Incomplete</option><option>Duplicate</option><option>Finished</option></select><button class="danger" id="close">Close file</button></div></details>';
     }
     html += '</div>';
@@ -306,11 +318,11 @@ async function viewSubmission(receipt){
 
   // Recipients and sends
   var recOpen = ['recipients','tracking'].indexOf(s.stage) >= 0;
-  html += '<div class="card"><h2>Recipients and submission tracking</h2>' + (recOpen ? '' : '<p class="lock">Opens at the recipient selection stage.</p>') +
+  html += '<div class="card"><h2>Recipients and submission tracking</h2>' + (recOpen ? '' : '<p class="lock">Opens at the agent selection stage.</p>') +
     (d.sends.length ? '<div class="wrap-x"><table><thead><tr><th>Company</th><th>Approved</th><th>Package version</th><th>Sent</th><th>Release form</th><th>Follow up</th><th>Response</th><th>Response date</th>' + (admin ? '<th></th>' : '') + '</tr></thead><tbody>' +
       d.sends.map(function(x){
         if (!admin) return '<tr><td>' + esc(x.company) + '</td><td>' + (x.approved ? 'Yes' : 'No') + '</td><td>' + esc(x.package_version) + '</td><td>' + day(x.sent_at) + '</td><td>' + esc(x.release_status) + '</td><td>' + day(x.follow_up) + '</td><td>' + esc(x.response) + '</td><td>' + day(x.response_date) + '</td></tr>';
-        return '<tr data-send="' + x.id + '"><td>' + esc(x.company) + (x.own_release ? '<div class="small muted">Requires its own release form</div>' : '') + '</td><td><input type="checkbox" data-k="approved"' + (x.approved ? ' checked' : '') + '></td><td><input data-k="package_version" value="' + esc(x.package_version) + '" style="width:70px"></td><td><input type="date" data-k="sent_at" value="' + day(x.sent_at) + '"></td><td><select data-k="release_status">' + ['','Not required','Requested','Signed and returned'].map(function(o){ return '<option' + ((x.release_status||'')===o?' selected':'') + '>' + o + '</option>'; }).join('') + '</select></td><td><input type="date" data-k="follow_up" value="' + day(x.follow_up) + '"></td><td><input data-k="response" value="' + esc(x.response) + '" style="width:150px"></td><td><input type="date" data-k="response_date" value="' + day(x.response_date) + '"></td><td><button class="ghost" data-sendsave="' + x.id + '">Save</button>' + (x.sent_at ? '' : ' <button class="danger" data-senddel="' + x.id + '">Remove</button>') + '</td></tr>';
+        return '<tr data-send="' + x.id + '"><td>' + esc(x.company) + (x.own_release ? '<div class="small muted">Requires its own release form</div>' : '') + '</td><td><input type="checkbox" data-k="approved"' + (x.approved ? ' checked' : '') + '></td><td><input data-k="package_version" value="' + esc(x.package_version) + '" style="width:70px"></td><td><input type="date" data-k="sent_at" value="' + day(x.sent_at) + '"></td><td><select data-k="release_status">' + ['','Not required','Requested','Signed and returned'].map(function(o){ return '<option' + ((x.release_status||'')===o?' selected':'') + '>' + o + '</option>'; }).join('') + '</select></td><td><input type="date" data-k="follow_up" value="' + day(x.follow_up) + '"></td><td><select data-k="response"><option value="">Not yet</option>' + ME.trackingStatuses.map(function(t){ return '<option' + (x.response === t ? ' selected' : '') + '>' + esc(t) + '</option>'; }).join('') + '</select></td><td><input type="date" data-k="response_date" value="' + day(x.response_date) + '"></td><td><button class="ghost" data-sendsave="' + x.id + '">Save</button>' + (x.sent_at ? '' : ' <button class="danger" data-senddel="' + x.id + '">Remove</button>') + '</td></tr>';
       }).join('') + '</tbody></table></div>' : '<p class="muted small">No recipients chosen yet.</p>') +
     (admin && recOpen ? '<div class="row" style="margin-top:10px"><select id="rsel"><option value="">Choose from the recipient list</option></select><button class="ghost" id="radd">Add recipient</button><a class="small" href="#/recipients">Manage the recipient list</a></div><p class="small muted">Approving a recipient is your final sign-off on where this story goes.</p>' : '') + '</div>';
 
@@ -328,6 +340,7 @@ async function viewSubmission(receipt){
   var note = function(){ return $('stnote') ? $('stnote').value : ''; };
   if ($('fwd')) $('fwd').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to: next, note: note()}}); }, 'Moved to ' + stageName(next) + '.'); };
   if ($('back')) $('back').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to: prev, note: note()}}); }, 'Moved back to ' + stageName(prev) + '.'); };
+  if ($('tsave')) $('tsave').onclick = function(){ act(function(){ return api(base + 'tracking', {method:'POST', body:{status: $('tstat').value, note: note()}}); }, 'Status updated.'); };
   if ($('sel')) $('sel').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to:'signoff', note: note()}}); }, 'Selected. Send the selection notice and the documents to sign.'); };
   if ($('notsel')) $('notsel').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to:'closed', outcome:'Not selected', note: note()}}); }, 'Closed as not selected.'); };
   if ($('reopen')) $('reopen').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to:'received', note: note()}}); }, 'Reopened.'); };
@@ -430,8 +443,9 @@ async function route(){
     if (!ME) { ME = await api('me'); document.getElementById('who').textContent = ME.user.email + ' · ' + ME.user.role; }
     closeMenu();
     if (ME.user.mustChange) { viewAccount(true); return; }
-    try { COUNTS = (await api('counts')).counts; } catch(x) {}
-    listState.stage = p[0] === 'stage' && p[1] ? p[1] : (p[0] === '' ? '' : listState.stage);
+    try { var c = await api('counts'); COUNTS = c.counts; TCOUNTS = c.tracking || {}; } catch(x) {}
+    if (p[0] === 'g' && p[1]) { if (listState.group !== p[1]) { listState.group = p[1]; listState.status = ''; } }
+    else if (p[0] === '') { listState.group = 'processing'; }
     if (p[0] === 'account') viewAccount(false);
     else if (p[0] === 's' && p[1]) await viewSubmission(decodeURIComponent(p[1]));
     else if (p[0] === 'recipients') await viewRecipients(p[1]);

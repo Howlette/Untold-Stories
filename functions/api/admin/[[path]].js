@@ -1,5 +1,5 @@
 // Admin API. The middleware has already verified sign-in and set context.data.user.
-import { STAGES, STAGE_KEYS, PACKAGE_ITEMS, addEvent, verifyChain, storeFile } from '../../../lib/db.js';
+import { STAGES, STAGE_KEYS, GROUPS, TRACKING_STATUSES, PACKAGE_ITEMS, addEvent, verifyChain, storeFile } from '../../../lib/db.js';
 import { json, fail, nowIso, clean, EMAIL_PATTERN } from '../../../lib/util.js';
 import { sendMail, template, mailConfigured } from '../../../lib/mail.js';
 import { ROLES, setPassword, passwordProblem, endSessions } from '../../../lib/auth.js';
@@ -45,7 +45,7 @@ async function touch(env, id) {
 
 async function me(env, user) {
   return {
-    user, stages: STAGES, roles: ROLES, reviewSteps: REVIEW_STEPS, packageItems: PACKAGE_ITEMS,
+    user, stages: STAGES, groups: GROUPS, trackingStatuses: TRACKING_STATUSES, roles: ROLES, reviewSteps: REVIEW_STEPS, packageItems: PACKAGE_ITEMS,
     packageStatuses: PACKAGE_STATUSES, scoreKeys: SCORE_KEYS, noticeKinds: NOTICE_KINDS,
     mailConfigured: mailConfigured(env), submissionsMode: String(env.SUBMISSIONS_MODE || 'closed'),
   };
@@ -53,12 +53,16 @@ async function me(env, user) {
 
 async function listSubmissions(env, user, url) {
   const stage = url.searchParams.get('stage');
+  const group = GROUPS.find(g => g[0] === url.searchParams.get('group'));
+  const tstatus = url.searchParams.get('tstatus');
   const q = clean(url.searchParams.get('q'), 100);
   const where = [], args = [];
   if (!seesAll(user)) { where.push('s.id IN (SELECT submission_id FROM assignments WHERE email = ?)'); args.push(user.email); }
   if (stage && STAGE_KEYS.includes(stage)) { where.push('s.stage = ?'); args.push(stage); }
+  else if (group) { where.push(`s.stage IN (${group[2].map(() => '?').join(',')})`); args.push(...group[2]); }
+  if (tstatus && TRACKING_STATUSES.includes(tstatus)) { where.push('s.tracking_status = ?'); args.push(tstatus); }
   if (q) { where.push('(s.receipt LIKE ? OR s.title LIKE ? OR s.name LIKE ? OR s.email LIKE ?)'); const like = `%${q}%`; args.push(like, like, like, like); }
-  const sql = `SELECT s.id, s.receipt, s.received_at, s.name, s.title, s.era, s.place, s.stage, s.outcome, s.is_test, s.updated_at,
+  const sql = `SELECT s.id, s.receipt, s.received_at, s.name, s.title, s.era, s.place, s.stage, s.tracking_status, s.outcome, s.is_test, s.updated_at,
       (SELECT COUNT(*) FROM reviews r WHERE r.submission_id = s.id) AS review_count
     FROM submissions s ${where.length ? 'WHERE ' + where.join(' AND ') : ''} ORDER BY s.id DESC LIMIT 500`;
   const { results } = await env.DB.prepare(sql).bind(...args).all();
@@ -101,7 +105,7 @@ async function moveStage(env, user, s, b) {
   const from = s.stage;
   if (from === to) bad('The story is already at that stage.');
   const iFrom = STAGE_KEYS.indexOf(from), iTo = STAGE_KEYS.indexOf(to);
-  const legalOK = user.role === 'legal' && from === 'legal' && (to === 'selection' || to === 'editorial');
+  const legalOK = user.role === 'legal' && from === 'legal' && to === 'editorial';
   if (!isAdmin(user) && !legalOK) deny('Only the administrator can move a story between stages.');
   if (from === 'closed' && to !== 'received' && !isAdmin(user)) deny();
 
@@ -118,8 +122,19 @@ async function moveStage(env, user, s, b) {
       if (!r.n) bad('Approve at least one recipient before moving to submission tracking.');
     }
   }
-  await env.DB.prepare('UPDATE submissions SET stage = ?1, outcome = ?2, updated_at = ?3 WHERE id = ?4').bind(to, outcome, nowIso(), s.id).run();
+  const tracking = to === 'tracking' ? (s.tracking_status || 'Sent') : s.tracking_status;
+  await env.DB.prepare('UPDATE submissions SET stage = ?1, outcome = ?2, updated_at = ?3, tracking_status = ?5 WHERE id = ?4').bind(to, outcome, nowIso(), s.id, tracking).run();
   await addEvent(env, { submission_id: s.id, actor: user.email, action: 'stage', detail: { from, to, note: note || null, outcome: to === 'closed' ? outcome : null } });
+  return { ok: true };
+}
+
+async function setTracking(env, user, s, b) {
+  if (!isAdmin(user)) deny();
+  if (s.stage !== 'tracking') bad('Tracking status applies once the story is in submission tracking.');
+  const status = String(b.status || '');
+  if (!TRACKING_STATUSES.includes(status)) bad('Choose a tracking status.');
+  await env.DB.prepare('UPDATE submissions SET tracking_status = ?1, updated_at = ?2 WHERE id = ?3').bind(status, nowIso(), s.id).run();
+  await addEvent(env, { submission_id: s.id, actor: user.email, action: 'tracking_status', detail: { from: s.tracking_status || null, to: status, note: clean(b.note, 2000) || null } });
   return { ok: true };
 }
 
@@ -268,7 +283,7 @@ async function noticeSend(env, user, s, b) {
 
 async function addSend(env, user, s, b) {
   if (!isAdmin(user)) deny();
-  if (!['recipients', 'tracking'].includes(s.stage)) bad('Recipients are chosen at the recipient selection stage.');
+  if (!['recipients', 'tracking'].includes(s.stage)) bad('Recipients are chosen at the agent selection stage.');
   const rid = Number(b.recipient_id);
   const r = await env.DB.prepare('SELECT id, company FROM recipients WHERE id = ?1').bind(rid).first();
   if (!r) bad('Choose a recipient from the list.');
@@ -396,7 +411,10 @@ export async function onRequest(context) {
       const q = seesAll(user)
         ? env.DB.prepare('SELECT stage, COUNT(*) AS n FROM submissions GROUP BY stage')
         : env.DB.prepare('SELECT stage, COUNT(*) AS n FROM submissions WHERE id IN (SELECT submission_id FROM assignments WHERE email = ?1) GROUP BY stage').bind(user.email);
-      return json({ counts: Object.fromEntries((await q.all()).results.map(r => [r.stage, r.n])) });
+      const tq = seesAll(user)
+        ? env.DB.prepare("SELECT tracking_status AS t, COUNT(*) AS n FROM submissions WHERE stage = 'tracking' GROUP BY tracking_status")
+        : env.DB.prepare("SELECT tracking_status AS t, COUNT(*) AS n FROM submissions WHERE stage = 'tracking' AND id IN (SELECT submission_id FROM assignments WHERE email = ?1) GROUP BY tracking_status").bind(user.email);
+      return json({ counts: Object.fromEntries((await q.all()).results.map(r => [r.stage, r.n])), tracking: Object.fromEntries((await tq.all()).results.map(r => [r.t || 'Sent', r.n])) });
     }
     if (method === 'GET' && a === 'ledger') {
       if (!isAdmin(user) && user.role !== 'legal') deny();
@@ -417,6 +435,7 @@ export async function onRequest(context) {
       if (c === 'files') return json(await uploadFile(env, user, s, request));
       const bd = await body(request);
       if (c === 'stage') return json(await moveStage(env, user, s, bd));
+      if (c === 'tracking') return json(await setTracking(env, user, s, bd));
       if (c === 'review') return json(await addReview(env, user, s, bd));
       if (c === 'note') return json(await addNote(env, user, s, bd));
       if (c === 'assign') return json(await assign(env, user, s, bd, false));
