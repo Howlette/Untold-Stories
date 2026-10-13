@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Check a story submission receipt for Untold Stories and Unsung Heroes.">
+<title>Check a Receipt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;900&family=Courier+Prime&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap">
+<style>
+:root{--ink:#16120e;--stage:#211b15;--line:#3b3229;--paper:#f2e8d7;--dust:#ab9c89;--amber:#e8a948;--amber-ink:#1a1206;--ok:#8cc38a;--bad:#e38b7a;color-scheme:dark}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--ink:#f2eee6;--stage:#e6ded0;--line:#cdbfab;--paper:#1d1711;--dust:#5f5347;--amber:#9a5c0b;--amber-ink:#fff8ec;--ok:#2f7a3a;--bad:#a23a28;color-scheme:light}}
+:root[data-theme="light"]{--ink:#f2eee6;--stage:#e6ded0;--line:#cdbfab;--paper:#1d1711;--dust:#5f5347;--amber:#9a5c0b;--amber-ink:#fff8ec;--ok:#2f7a3a;--bad:#a23a28;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--paper);font:18px/1.6 "Newsreader",Georgia,serif}
+main{max-width:720px;margin:0 auto;padding:48px 16px 80px}
+a{color:var(--amber)}
+.eyebrow{font:700 14px "Courier Prime",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--amber);margin:0}
+h1{font:900 clamp(2.4rem,7vw,4rem)/.95 "Big Shoulders Display","Arial Narrow",sans-serif;text-transform:uppercase;margin:8px 0 16px}
+.card{background:var(--stage);border:1px solid var(--line);border-radius:10px;padding:20px;margin:24px 0}
+label{display:block;font-weight:600;margin:14px 0 6px}
+input{font:inherit;color:var(--paper);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:10px 12px;width:100%}
+.hint{font-size:15px;color:var(--dust)}
+button{font:700 17px "Big Shoulders Display","Arial Narrow",sans-serif;text-transform:uppercase;letter-spacing:.06em;background:var(--amber);color:var(--amber-ink);border:0;border-radius:6px;padding:12px 22px;margin-top:18px;cursor:pointer}
+.mono{font:14px "Courier Prime",monospace;word-break:break-all}
+dl{display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:6px 16px;margin:0}
+dt{color:var(--dust);font-size:15px}
+dd{margin:0}
+.good{color:var(--ok)} .bad{color:var(--bad)}
+@media (max-width:560px){dl{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Untold Stories and Unsung Heroes</p>
+  <h1>Check a receipt</h1>
+  <p>Enter the receipt number from your confirmation. To confirm the file we received is the same file you have, choose your story file too. Your file is checked on this device and is not uploaded.</p>
+  <form class="card" id="vf">
+    <label for="receipt">Receipt number</label>
+    <input id="receipt" placeholder="UU-2026-000123" autocomplete="off" required>
+    <label for="file">Your story file (optional)</label>
+    <input id="file" type="file">
+    <p class="hint">Use the exact file you submitted. Any change to it, even one character, gives a different fingerprint.</p>
+    <button type="submit">Check</button>
+  </form>
+  <div id="out" aria-live="polite"></div>
+  <p><a href="/">Back to the main page</a></p>
+</main>
+<script>
+(function(){
+  function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+  var q = new URLSearchParams(location.search).get('receipt');
+  if (q) document.getElementById('receipt').value = q;
+  document.getElementById('vf').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var out = document.getElementById('out');
+    var r = document.getElementById('receipt').value.trim().toUpperCase();
+    out.innerHTML = '<p>Checking…</p>';
+    try {
+      var res = await fetch('/api/verify?receipt=' + encodeURIComponent(r));
+      var d = await res.json();
+      if (res.status === 404 || !d.found) { out.innerHTML = '<div class="card"><p class="bad"><b>No receipt found.</b> Check the number on your confirmation email.</p></div>'; return; }
+      if (!res.ok) { out.innerHTML = '<div class="card"><p class="bad">' + esc(d.error || 'The check failed. Try again.') + '</p></div>'; return; }
+      var html = '<div class="card"><p class="good"><b>Receipt found.</b></p><dl><dt>Receipt number</dt><dd class="mono">' + esc(d.receipt) + '</dd><dt>Received</dt><dd>' + esc(new Date(d.received_at).toUTCString()) + '</dd><dt>Story file fingerprint</dt><dd class="mono">' + esc(d.story_sha256) + '</dd><dt>Submission record fingerprint</dt><dd class="mono">' + esc(d.record_sha256) + '</dd></dl>';
+      var f = document.getElementById('file').files[0];
+      if (f) {
+        var buf = await f.arrayBuffer();
+        var dig = await crypto.subtle.digest('SHA-256', buf);
+        var hex = Array.from(new Uint8Array(dig)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+        html += hex === d.story_sha256
+          ? '<p class="good" style="margin-top:16px"><b>Your file matches.</b> It is identical to the file we received.</p>'
+          : '<p class="bad" style="margin-top:16px"><b>Your file does not match.</b> Its fingerprint is <span class="mono">' + esc(hex) + '</span>. It is not the exact file we received.</p>';
+      }
+      out.innerHTML = html + '</div>';
+    } catch(err) {
+      out.innerHTML = '<div class="card"><p class="bad">The check failed. Try again.</p></div>';
+    }
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,398 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Untold Unsung Admin</title>
+<style>
+:root{
+  --ink:#16120e; --stage:#211b15; --raise:#2a231b; --line:#3b3229; --paper:#f2e8d7; --dust:#ab9c89;
+  --amber:#e8a948; --amber-ink:#1a1206; --ok:#8cc38a; --bad:#e38b7a; --warn:#e3c27a;
+  --display:"Arial Narrow","Helvetica Neue",Arial,sans-serif; --body:Georgia,"Times New Roman",serif; --mono:"Courier New",monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){
+  :root:not([data-theme="dark"]){--ink:#f4f1ea;--stage:#ffffff;--raise:#ece6da;--line:#d6cbb8;--paper:#1d1711;--dust:#5f5347;--amber:#9a5c0b;--amber-ink:#fff8ec;--ok:#2f7a3a;--bad:#a23a28;--warn:#8a6411;color-scheme:light}
+}
+:root[data-theme="light"]{--ink:#f4f1ea;--stage:#ffffff;--raise:#ece6da;--line:#d6cbb8;--paper:#1d1711;--dust:#5f5347;--amber:#9a5c0b;--amber-ink:#fff8ec;--ok:#2f7a3a;--bad:#a23a28;--warn:#8a6411;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--ink);color:var(--paper);font:15px/1.5 var(--body)}
+a{color:var(--amber)}
+header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--stage);position:sticky;top:0;z-index:5}
+.brand{font:700 18px var(--display);text-transform:uppercase;letter-spacing:.04em}
+.brand span{color:var(--amber)}
+nav{display:flex;gap:4px;flex-wrap:wrap}
+nav a{padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--paper);font-family:var(--display);font-size:15px;white-space:nowrap}
+nav a.on{background:var(--amber);color:var(--amber-ink)}
+.who{margin-left:auto;color:var(--dust);font-size:13px}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 80px}
+h1{font:700 26px/1.1 var(--display);text-transform:uppercase;margin:0 0 6px}
+h2{font:700 17px var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 10px}
+.sub{color:var(--dust);margin:0 0 16px}
+.card{background:var(--stage);border:1px solid var(--line);border-radius:10px;padding:16px;margin:0 0 16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+.grid .card{margin:0}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--display);text-transform:uppercase;letter-spacing:.04em;color:var(--dust)}
+tr.link{cursor:pointer}
+tr.link:hover td{background:var(--raise)}
+.wrap-x{overflow-x:auto}
+.mono{font-family:var(--mono);font-size:12.5px;word-break:break-all}
+.pill{display:inline-block;padding:1px 8px;border-radius:999px;border:1px solid var(--line);font:600 12px var(--display);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+.pill.amber{background:var(--amber);color:var(--amber-ink);border-color:var(--amber)}
+.pill.ok{color:var(--ok);border-color:var(--ok)}
+.pill.bad{color:var(--bad);border-color:var(--bad)}
+.pill.warn{color:var(--warn);border-color:var(--warn)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 12px}
+.chip{border:1px solid var(--line);background:none;color:var(--paper);border-radius:999px;padding:4px 10px;font:14px var(--display);cursor:pointer}
+.chip.on{background:var(--amber);color:var(--amber-ink);border-color:var(--amber)}
+.chip b{font-weight:700;margin-left:4px}
+input,select,textarea{font:inherit;color:var(--paper);background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;max-width:100%}
+textarea{width:100%;min-height:90px}
+label{display:block;font-size:13px;color:var(--dust);margin:8px 0 3px}
+button,.btn{font:600 14px var(--display);text-transform:uppercase;letter-spacing:.04em;border-radius:6px;padding:7px 14px;cursor:pointer;border:1px solid var(--amber);background:var(--amber);color:var(--amber-ink);text-decoration:none;display:inline-block}
+button.ghost,.btn.ghost{background:none;color:var(--amber)}
+button.danger{background:none;color:var(--bad);border-color:var(--bad)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:end}
+.row > *{flex:0 1 auto}
+dl{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:4px 14px;margin:0}
+dt{color:var(--dust);font-size:13px}
+dd{margin:0;overflow-wrap:anywhere}
+.steps{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0 16px;padding:0;list-style:none}
+.steps li{font:13px var(--display);padding:4px 9px;border:1px solid var(--line);border-radius:6px;color:var(--dust)}
+.steps li.done{color:var(--paper)}
+.steps li.now{background:var(--amber);color:var(--amber-ink);border-color:var(--amber);font-weight:700}
+.lock{border-left:3px solid var(--warn);padding:6px 10px;background:var(--raise);border-radius:4px;margin:0 0 10px;font-size:14px}
+.msg{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);max-width:92vw;padding:10px 16px;border-radius:8px;background:var(--paper);color:var(--ink);font-size:14px;z-index:20;box-shadow:0 4px 18px rgba(0,0,0,.35)}
+.msg.bad{background:var(--bad);color:#1a0906}
+.muted{color:var(--dust)}
+.small{font-size:13px}
+.event{border-bottom:1px solid var(--line);padding:7px 0}
+.event:last-child{border-bottom:0}
+.test{color:var(--warn);font:600 11px var(--display);text-transform:uppercase;margin-left:6px}
+pre.notice{white-space:pre-wrap;font:13px var(--mono);background:var(--raise);padding:8px;border-radius:6px;margin:6px 0 0}
+details summary{cursor:pointer}
+@media (max-width:640px){dl{grid-template-columns:1fr}.who{margin-left:0;width:100%}header{position:static}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">Untold Unsung <span>Admin</span></div>
+  <nav id="nav"></nav>
+  <div class="who" id="who"></div>
+</header>
+<main id="app"><p class="muted">Loading…</p></main>
+<div id="msg" class="msg" hidden role="status" aria-live="polite"></div>
+<script>
+(function(){
+'use strict';
+var ME = null, RECIPIENTS = null, USERS = null;
+var app = document.getElementById('app');
+
+function esc(v){ return v === null || v === undefined ? '' : String(v).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function when(iso){ if(!iso) return ''; var d = new Date(iso); if (isNaN(d)) return esc(iso); return d.toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}); }
+function day(iso){ return iso ? esc(String(iso).slice(0,10)) : ''; }
+function size(n){ if(!n && n !== 0) return ''; if(n < 1024) return n+' B'; if(n < 1048576) return (n/1024).toFixed(0)+' KB'; return (n/1048576).toFixed(1)+' MB'; }
+function short(h){ return h ? esc(h.slice(0,12))+'…' : ''; }
+function stageName(k){ var s = (ME.stages||[]).find(function(x){return x[0]===k;}); return s ? s[1] : k; }
+function toast(t, bad){ var m = document.getElementById('msg'); m.textContent = t; m.className = 'msg' + (bad ? ' bad' : ''); m.hidden = false; clearTimeout(toast.t); toast.t = setTimeout(function(){ m.hidden = true; }, bad ? 7000 : 3500); }
+
+async function api(path, opts){
+  opts = opts || {};
+  var init = { method: opts.method || 'GET', headers: {} , credentials: 'same-origin'};
+  if (opts.form) { init.body = opts.form; }
+  else if (opts.body !== undefined) { init.body = JSON.stringify(opts.body); init.headers['content-type'] = 'application/json'; }
+  var r = await fetch('/api/admin/' + path, init);
+  var data = null;
+  try { data = await r.json(); } catch(e) {}
+  if (!r.ok) { var err = new Error((data && data.error) || ('The server returned ' + r.status + '.')); err.status = r.status; throw err; }
+  return data;
+}
+async function act(fn, okText){
+  try { var res = await fn(); if (okText) toast(typeof okText === 'function' ? okText(res) : okText); await route(); return res; }
+  catch(e){ toast(e.message, true); }
+}
+
+function navHtml(cur){
+  var items = [['#/','Submissions','list']];
+  if (ME.user.role === 'admin') items.push(['#/recipients','Recipients','recipients'],['#/users','Users','users']);
+  if (ME.user.role === 'admin' || ME.user.role === 'legal') items.push(['#/ledger','History check','ledger']);
+  document.getElementById('nav').innerHTML = items.map(function(i){ return '<a href="'+i[0]+'" class="'+(cur===i[2]?'on':'')+'">'+i[1]+'</a>'; }).join('');
+}
+
+// ---------- submissions list ----------
+var listState = { stage: '', q: '' };
+async function viewList(){
+  navHtml('list');
+  var qs = new URLSearchParams(); if (listState.stage) qs.set('stage', listState.stage); if (listState.q) qs.set('q', listState.q);
+  var d = await api('submissions' + (qs.toString() ? '?' + qs : ''));
+  var total = Object.values(d.counts).reduce(function(a,b){return a+b;},0);
+  var modeNote = ME.submissionsMode === 'test' ? '<p class="lock">The public form is in test mode. New submissions are marked as tests until submissions open.</p>'
+    : ME.submissionsMode === 'closed' ? '<p class="lock">The public form is closed. No new submissions can arrive.</p>' : '';
+  var mailNote = ME.mailConfigured ? '' : '<p class="lock">Email is not connected yet. Notices are recorded here but not delivered.</p>';
+  app.innerHTML = '<h1>Submissions</h1><p class="sub">Every story received, by stage.</p>' + modeNote + mailNote +
+    '<div class="chips">' + '<button class="chip '+(listState.stage===''?'on':'')+'" data-stage="">All<b>'+total+'</b></button>' +
+    ME.stages.map(function(s){ return '<button class="chip '+(listState.stage===s[0]?'on':'')+'" data-stage="'+s[0]+'">'+esc(s[1])+'<b>'+(d.counts[s[0]]||0)+'</b></button>'; }).join('') + '</div>' +
+    '<div class="row" style="margin-bottom:12px"><input id="q" type="search" placeholder="Search receipt, title, or name" value="'+esc(listState.q)+'" style="min-width:260px"><button class="ghost" id="qgo">Search</button></div>' +
+    '<div class="card wrap-x">' + (d.submissions.length ? '<table><thead><tr><th>Receipt</th><th>Story title</th><th>Submitter</th><th>Received</th><th>Stage</th><th>Reviews</th></tr></thead><tbody>' +
+      d.submissions.map(function(s){ return '<tr class="link" data-r="'+esc(s.receipt)+'"><td class="mono">'+esc(s.receipt)+(s.is_test?'<span class="test">test</span>':'')+'</td><td>'+esc(s.title)+'</td><td>'+esc(s.name)+'</td><td>'+when(s.received_at)+'</td><td><span class="pill '+(s.stage==='closed'?'':'amber')+'">'+esc(stageName(s.stage))+'</span>'+(s.outcome && s.stage==='closed'?' <span class="small muted">'+esc(s.outcome)+'</span>':'')+'</td><td>'+s.review_count+'</td></tr>'; }).join('') +
+      '</tbody></table>' : '<p class="muted">No submissions here yet.</p>') + '</div>';
+  app.querySelectorAll('.chip').forEach(function(b){ b.onclick = function(){ listState.stage = b.dataset.stage; route(); }; });
+  app.querySelectorAll('tr.link').forEach(function(tr){ tr.onclick = function(){ location.hash = '#/s/' + tr.dataset.r; }; });
+  var q = document.getElementById('q');
+  document.getElementById('qgo').onclick = function(){ listState.q = q.value.trim(); route(); };
+  q.onkeydown = function(e){ if (e.key === 'Enter') { listState.q = q.value.trim(); route(); } };
+}
+
+// ---------- one submission ----------
+var SCORE_LABELS = { true_documented:'True and documented', real_risk:'Real risk', turning_point:'A turning point', lasting_impact:'Lasting impact', message:'"If they did it, so can you"', screen_potential:'Screen potential' };
+var NOTICE_LABELS = { receipt:'Receipt', not_selected:'Not selected', selected:'Selected', signing_request:'Signing request', milestone:'Milestone', closing:'Closing' };
+var FILE_LABELS = { story:'Story', record:'Supporting record', package:'Package draft', agreement:'Signed agreement', other:'Other' };
+var ACTION_LABELS = { received:'Received', stage:'Stage changed', review:'Review recorded', note:'Note', assigned:'Assigned', unassigned:'Unassigned', file:'File added', file_opened:'File opened', agreement:'Agreement', package:'Package item updated', notice:'Notice', recipient_added:'Recipient added', recipient_removed:'Recipient removed', send_updated:'Send updated', exported:'Record exported' };
+
+async function viewSubmission(receipt){
+  navHtml('list');
+  var d = await api('submissions/' + encodeURIComponent(receipt));
+  var s = d.submission, role = ME.user.role, admin = role === 'admin', legal = role === 'legal';
+  var keys = ME.stages.map(function(x){return x[0];}), iNow = keys.indexOf(s.stage);
+  var next = s.stage !== 'closed' && iNow < keys.length - 2 ? keys[iNow+1] : null;
+  if (s.stage === 'selection') next = 'signoff';
+  var prev = iNow > 0 && s.stage !== 'closed' ? keys[iNow-1] : null;
+  var files = d.files;
+  var agreementFiles = files.filter(function(f){ return f.kind === 'agreement'; });
+  var html = '';
+  html += '<p class="small"><a href="#/">← All submissions</a></p>';
+  html += '<h1>' + esc(s.title) + '</h1><p class="sub"><span class="mono">' + esc(s.receipt) + '</span>' + (s.is_test ? '<span class="test">test submission</span>' : '') + ' · received ' + when(s.received_at) + ' · <span class="pill amber">' + esc(stageName(s.stage)) + '</span>' + (s.outcome ? ' <span class="pill">' + esc(s.outcome) + '</span>' : '') + '</p>';
+  html += '<ol class="steps">' + ME.stages.map(function(x, i){ return '<li class="' + (x[0]===s.stage ? 'now' : (i < iNow ? 'done' : '')) + '">' + esc(x[1]) + '</li>'; }).join('') + '</ol>';
+
+  // Stage actions
+  if (admin || (legal && s.stage === 'legal')) {
+    html += '<div class="card"><h2>Move this story</h2>';
+    if (s.stage === 'selection') {
+      html += '<p class="small muted">Your decision. Selecting moves the story to rights sign-off. Not selecting closes the file; send the not-selected notice below.</p>';
+      html += '<div class="row"><input id="stnote" placeholder="Note (optional)" style="min-width:260px"><button id="sel">Select for development</button>' + (admin ? '<button class="danger" id="notsel">Not selected</button>' : '') + '</div>';
+    } else if (s.stage === 'closed') {
+      html += admin ? '<div class="row"><input id="stnote" placeholder="Reason for reopening" style="min-width:260px"><button class="ghost" id="reopen">Reopen at Received</button></div>' : '<p class="muted">Closed.</p>';
+    } else {
+      var gate = '';
+      if (next === 'development' && !d.developmentUnlocked) gate = 'Development stays locked until both signed documents are on file.';
+      if (next === 'tracking' && !d.sends.some(function(x){ return x.approved; })) gate = 'Approve at least one recipient first.';
+      html += (gate ? '<p class="lock">' + esc(gate) + '</p>' : '');
+      html += '<div class="row"><input id="stnote" placeholder="Note (optional)" style="min-width:260px">' +
+        (next && (admin || legal) ? '<button id="fwd"' + (gate ? ' disabled' : '') + '>Move to ' + esc(stageName(next)) + '</button>' : '') +
+        (prev && admin ? '<button class="ghost" id="back">Back to ' + esc(stageName(prev)) + '</button>' : '') + '</div>';
+      if (admin) html += '<details style="margin-top:10px"><summary class="small">Close this file</summary><div class="row" style="margin-top:8px"><select id="outcome"><option>Not selected</option><option>Withdrawn</option><option>Incomplete</option><option>Duplicate</option><option>Finished</option></select><button class="danger" id="close">Close file</button></div></details>';
+    }
+    html += '</div>';
+  }
+
+  html += '<div class="grid">';
+  // Submission details
+  html += '<div class="card"><h2>Submission</h2><dl>' +
+    '<dt>Submitter</dt><dd>' + esc(s.name) + '</dd>' +
+    '<dt>Email</dt><dd><a href="mailto:' + esc(s.email) + '">' + esc(s.email) + '</a></dd>' +
+    '<dt>Phone</dt><dd>' + esc(s.phone) + '</dd>' +
+    '<dt>Whose story</dt><dd>' + esc(s.whose) + '</dd>' +
+    '<dt>People living</dt><dd>' + esc(s.living) + '</dd>' +
+    '<dt>When</dt><dd>' + esc(s.era) + '</dd>' +
+    '<dt>Where</dt><dd>' + esc(s.place) + '</dd>' +
+    '<dt>Copyright registration</dt><dd>' + esc(s.regno) + ' · <a href="https://publicrecords.copyright.gov" target="_blank" rel="noopener">check public records</a></dd>' +
+    '<dt>Story fingerprint</dt><dd class="mono">' + esc(s.story_sha256) + '</dd>' +
+    '<dt>Record fingerprint</dt><dd class="mono">' + esc(s.record_sha256) + '</dd>' +
+    '</dl>' + (s.summary ? '<label>Anything else we should know</label><p style="white-space:pre-wrap;margin:0">' + esc(s.summary) + '</p>' : '') +
+    ((admin || legal) ? '<p style="margin:12px 0 0"><a class="btn ghost" href="/api/admin/submissions/' + encodeURIComponent(s.receipt) + '/export">Export full record</a></p>' : '') + '</div>';
+
+  // Files
+  html += '<div class="card"><h2>Files</h2><div class="wrap-x"><table><thead><tr><th>Kind</th><th>File</th><th>Size</th><th>Fingerprint</th></tr></thead><tbody>' +
+    files.map(function(f){ return '<tr><td>' + esc(FILE_LABELS[f.kind] || f.kind) + '</td><td><a href="/api/admin/files/' + f.id + '">' + esc(f.name) + '</a><div class="small muted">' + when(f.uploaded_at) + '</div></td><td>' + size(f.size) + '</td><td class="mono" title="' + esc(f.sha256) + '">' + short(f.sha256) + '</td></tr>'; }).join('') +
+    '</tbody></table></div>';
+  if (role !== 'reviewer') {
+    html += '<div class="row" style="margin-top:10px"><select id="fkind">' + (admin || legal ? '<option value="agreement">Signed agreement</option>' : '') + '<option value="package">Package draft</option><option value="record">Supporting record</option><option value="other">Other</option></select><input type="file" id="ffile"><button class="ghost" id="fup">Upload</button></div><p class="small muted">Files are stored once and never replaced. Each upload gets its own fingerprint.</p>';
+  }
+  html += '</div>';
+
+  // People
+  if (admin) {
+    html += '<div class="card"><h2>Assigned people</h2>' + (d.assignments.length ? '<table><tbody>' + d.assignments.map(function(a){ return '<tr><td>' + esc(a.email) + '</td><td>' + esc(a.role || '') + '</td><td style="text-align:right"><button class="ghost" data-unassign="' + esc(a.email) + '">Remove</button></td></tr>'; }).join('') + '</tbody></table>' : '<p class="muted small">No one assigned. Reviewers and writers see only the stories assigned to them.</p>') +
+      '<div class="row" style="margin-top:8px"><select id="asel"><option value="">Choose a person</option></select><button class="ghost" id="assign">Assign</button></div></div>';
+  }
+  html += '</div>';
+
+  // Reviews
+  html += '<div class="card" style="margin-top:16px"><h2>Reviews</h2>';
+  if (d.hiddenReviews) html += '<p class="lock">' + d.hiddenReviews + ' other review(s) stay hidden until you record your own for that step.</p>';
+  html += d.reviews.length ? '<div class="wrap-x"><table><thead><tr><th>Step</th><th>Reviewer</th><th>Recommendation</th><th>Scores</th><th>Notes</th><th>Date</th></tr></thead><tbody>' + d.reviews.map(function(r){
+    var sc = {}; try { sc = JSON.parse(r.scores || '{}'); } catch(e) {}
+    var scs = Object.keys(sc).map(function(k){ return esc(SCORE_LABELS[k] || k) + ': ' + sc[k]; }).join('<br>');
+    var tot = Object.values(sc).reduce(function(a,b){return a+b;},0);
+    return '<tr><td>' + esc(r.step) + '</td><td>' + esc(r.reviewer) + '</td><td><span class="pill ' + (r.decision==='Pass'?'ok':r.decision==='Decline'?'bad':'warn') + '">' + esc(r.decision) + '</span></td><td class="small">' + (scs ? scs + '<br><b>Total ' + tot + ' of 30</b>' : '') + '</td><td class="small" style="white-space:pre-wrap">' + esc(r.notes) + '</td><td class="small">' + when(r.completed_at) + '</td></tr>'; }).join('') + '</tbody></table></div>' : '<p class="muted small">No reviews yet.</p>';
+  if (role !== 'writer') {
+    html += '<details style="margin-top:10px"' + (['screening','editorial','legal'].indexOf(s.stage) >= 0 ? ' open' : '') + '><summary>Record a review</summary>' +
+      '<label for="rstep">Step</label><select id="rstep">' + ['screening','editorial','legal'].filter(function(x){ return x !== 'legal' || admin || legal; }).map(function(x){ return '<option value="' + x + '"' + (x === s.stage ? ' selected' : '') + '>' + esc(stageName(x)) + '</option>'; }).join('') + '</select>' +
+      '<div id="rscores"></div>' +
+      '<label for="rdec">Recommendation</label><select id="rdec"><option>Pass</option><option>Hold</option><option>Decline</option></select>' +
+      '<label for="rnotes">Notes</label><textarea id="rnotes" placeholder="For screening: confirm the registration number matches the title and author in the Copyright Office public records, and that the form is complete."></textarea>' +
+      '<p><button id="rsave">Save review</button></p></details>';
+  }
+  html += '</div>';
+
+  // Notices
+  if (admin || legal) {
+    html += '<div class="card"><h2>Notices to the submitter</h2>' + (ME.mailConfigured ? '' : '<p class="lock">Email is not connected yet. Notices are recorded but not delivered.</p>') +
+      (d.notices.length ? d.notices.map(function(n){ return '<details class="event"><summary>' + esc(NOTICE_LABELS[n.kind] || n.kind) + ' · ' + when(n.sent_at) + ' · <span class="small ' + (n.status==='sent'?'':'muted') + '">' + esc(n.status) + '</span></summary><p class="small muted" style="margin:6px 0 0">To ' + esc(n.to_email) + ' · ' + esc(n.subject) + '</p><pre class="notice">' + esc(n.body) + '</pre></details>'; }).join('') : '<p class="muted small">No notices yet.</p>') +
+      '<details style="margin-top:10px"><summary>Write a notice</summary><div class="row" style="margin-top:8px"><select id="nkind">' + ME.noticeKinds.map(function(k){ return '<option value="' + k + '">' + esc(NOTICE_LABELS[k]) + '</option>'; }).join('') + '</select><button class="ghost" id="nload">Load draft wording</button></div>' +
+      '<label for="nsubj">Subject</label><input id="nsubj" style="width:100%"><label for="nbody">Message</label><textarea id="nbody" style="min-height:200px"></textarea><p class="small muted">Draft wording is pending review by legal counsel. Replace anything in brackets before sending.</p><p><button id="nsend">Send to ' + esc(s.email) + '</button></p></details></div>';
+  }
+
+  // Rights sign-off
+  var agr = {}; d.agreements.forEach(function(a){ agr[a.kind] = a; });
+  var signoffOpen = ['signoff','development','recipients','tracking'].indexOf(s.stage) >= 0;
+  html += '<div class="card"><h2>Rights sign-off</h2>' + (signoffOpen ? '' : '<p class="lock">Opens when the story is selected.</p>') +
+    '<p class="small muted">Both documents must be signed and on file before any development starts.</p><div class="wrap-x"><table><thead><tr><th>Document</th><th>Status</th><th>Sent</th><th>Signed</th><th>Signed copy fingerprint</th>' + ((admin||legal) && signoffOpen ? '<th>Record</th>' : '') + '</tr></thead><tbody>' +
+    [['acknowledgement','Acknowledgement'],['rights','Rights agreement']].map(function(k){
+      var a = agr[k[0]] || {};
+      var st = a.signed_at ? '<span class="pill ok">Signed</span>' : a.sent_at ? '<span class="pill warn">Sent</span>' : '<span class="pill">Not sent</span>';
+      var ctl = '';
+      if ((admin||legal) && signoffOpen) {
+        ctl = '<td><div class="row"><input data-ref="' + k[0] + '" placeholder="Signing reference" value="' + esc(a.signing_ref || '') + '" style="width:150px"><button class="ghost" data-sent="' + k[0] + '">Mark sent</button></div>' +
+          '<div class="row" style="margin-top:6px"><select data-afile="' + k[0] + '"><option value="">Choose signed copy</option>' + agreementFiles.map(function(f){ return '<option value="' + f.id + '"' + (a.file_id === f.id ? ' selected' : '') + '>' + esc(f.name) + '</option>'; }).join('') + '</select><button data-signed="' + k[0] + '">Mark signed</button>' + (admin && (a.sent_at || a.signed_at) ? '<button class="danger" data-areset="' + k[0] + '">Reset</button>' : '') + '</div></td>';
+      }
+      return '<tr><td>' + k[1] + '</td><td>' + st + '</td><td class="small">' + day(a.sent_at) + '</td><td class="small">' + day(a.signed_at) + '</td><td class="mono" title="' + esc(a.signed_sha256||'') + '">' + short(a.signed_sha256) + '</td>' + ctl + '</tr>';
+    }).join('') + '</tbody></table></div>' + (signoffOpen && (admin||legal) ? '<p class="small muted">To mark a document signed, first upload the signed copy under Files as a Signed agreement.</p>' : '') + '</div>';
+
+  // Proposal package
+  var pk = {}; d.packageItems.forEach(function(p){ pk[p.item] = p; });
+  var canPkg = (admin || role === 'writer') && d.developmentUnlocked;
+  var pkgFiles = files.filter(function(f){ return f.kind === 'package'; });
+  html += '<div class="card"><h2>Proposal package</h2>' + (d.developmentUnlocked ? '' : '<p class="lock">Locked until both signed documents are on file.</p>') +
+    '<div class="wrap-x"><table><thead><tr><th>Item</th><th>Owner</th><th>Status</th><th>Version</th><th>Writers Guild registration</th><th>File</th>' + (canPkg ? '<th></th>' : '') + '</tr></thead><tbody>' +
+    ME.packageItems.map(function(item, i){
+      var p = pk[item] || {};
+      if (!canPkg) return '<tr><td>' + esc(item) + '</td><td>' + esc(p.owner) + '</td><td>' + esc(p.status || 'Not started') + '</td><td>' + esc(p.version) + '</td><td>' + esc(p.wga_reg) + '</td><td>' + (p.file_id ? '<a href="/api/admin/files/' + p.file_id + '">download</a>' : '') + '</td></tr>';
+      return '<tr data-pkg="' + i + '"><td>' + esc(item) + '</td><td><input data-k="owner" value="' + esc(p.owner) + '" style="width:130px"></td><td><select data-k="status">' + ME.packageStatuses.map(function(st){ return '<option' + ((p.status||'Not started')===st?' selected':'') + '>' + st + '</option>'; }).join('') + '</select></td><td><input data-k="version" value="' + esc(p.version) + '" style="width:70px"></td><td><input data-k="wga_reg" value="' + esc(p.wga_reg) + '" style="width:130px"></td><td><select data-k="file_id"><option value="">None</option>' + pkgFiles.map(function(f){ return '<option value="' + f.id + '"' + (p.file_id===f.id?' selected':'') + '>' + esc(f.name) + '</option>'; }).join('') + '</select></td><td><button class="ghost" data-pkgsave="' + i + '">Save</button></td></tr>';
+    }).join('') + '</tbody></table></div></div>';
+
+  // Recipients and sends
+  var recOpen = ['recipients','tracking'].indexOf(s.stage) >= 0;
+  html += '<div class="card"><h2>Recipients and submission tracking</h2>' + (recOpen ? '' : '<p class="lock">Opens at the recipient selection stage.</p>') +
+    (d.sends.length ? '<div class="wrap-x"><table><thead><tr><th>Company</th><th>Approved</th><th>Package version</th><th>Sent</th><th>Release form</th><th>Follow up</th><th>Response</th><th>Response date</th>' + (admin ? '<th></th>' : '') + '</tr></thead><tbody>' +
+      d.sends.map(function(x){
+        if (!admin) return '<tr><td>' + esc(x.company) + '</td><td>' + (x.approved ? 'Yes' : 'No') + '</td><td>' + esc(x.package_version) + '</td><td>' + day(x.sent_at) + '</td><td>' + esc(x.release_status) + '</td><td>' + day(x.follow_up) + '</td><td>' + esc(x.response) + '</td><td>' + day(x.response_date) + '</td></tr>';
+        return '<tr data-send="' + x.id + '"><td>' + esc(x.company) + (x.own_release ? '<div class="small muted">Requires its own release form</div>' : '') + '</td><td><input type="checkbox" data-k="approved"' + (x.approved ? ' checked' : '') + '></td><td><input data-k="package_version" value="' + esc(x.package_version) + '" style="width:70px"></td><td><input type="date" data-k="sent_at" value="' + day(x.sent_at) + '"></td><td><select data-k="release_status">' + ['','Not required','Requested','Signed and returned'].map(function(o){ return '<option' + ((x.release_status||'')===o?' selected':'') + '>' + o + '</option>'; }).join('') + '</select></td><td><input type="date" data-k="follow_up" value="' + day(x.follow_up) + '"></td><td><input data-k="response" value="' + esc(x.response) + '" style="width:150px"></td><td><input type="date" data-k="response_date" value="' + day(x.response_date) + '"></td><td><button class="ghost" data-sendsave="' + x.id + '">Save</button>' + (x.sent_at ? '' : ' <button class="danger" data-senddel="' + x.id + '">Remove</button>') + '</td></tr>';
+      }).join('') + '</tbody></table></div>' : '<p class="muted small">No recipients chosen yet.</p>') +
+    (admin && recOpen ? '<div class="row" style="margin-top:10px"><select id="rsel"><option value="">Choose from the recipient list</option></select><button class="ghost" id="radd">Add recipient</button><a class="small" href="#/recipients">Manage the recipient list</a></div><p class="small muted">Approving a recipient is your final sign-off on where this story goes.</p>' : '') + '</div>';
+
+  // History
+  html += '<div class="card"><h2>History</h2><p class="small muted">Every action is recorded with the fingerprint of the entry before it. Entries cannot be edited.</p>' +
+    '<div class="row" style="margin-bottom:8px"><input id="note" placeholder="Add a note to the history" style="min-width:300px;flex:1"><button class="ghost" id="nadd">Add note</button></div>' +
+    d.events.slice().reverse().map(function(e){
+      var det = ''; try { var o = JSON.parse(e.detail || 'null'); if (o) det = Object.keys(o).filter(function(k){ return o[k] !== null && o[k] !== '' && typeof o[k] !== 'object'; }).map(function(k){ return esc(k.replace(/_/g,' ')) + ': ' + esc(o[k]); }).join(' · '); } catch(x) { det = esc(e.detail); }
+      return '<div class="event"><b>' + esc(ACTION_LABELS[e.action] || e.action) + '</b> <span class="small muted">' + when(e.at) + ' · ' + esc(e.actor) + '</span>' + (det ? '<div class="small">' + det + '</div>' : '') + '<div class="mono muted" title="' + esc(e.hash) + '">' + short(e.hash) + '</div></div>';
+    }).join('') + '</div>';
+
+  app.innerHTML = html;
+  var $ = function(id){ return document.getElementById(id); };
+  var R = encodeURIComponent(s.receipt), base = 'submissions/' + R + '/';
+  var note = function(){ return $('stnote') ? $('stnote').value : ''; };
+  if ($('fwd')) $('fwd').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to: next, note: note()}}); }, 'Moved to ' + stageName(next) + '.'); };
+  if ($('back')) $('back').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to: prev, note: note()}}); }, 'Moved back to ' + stageName(prev) + '.'); };
+  if ($('sel')) $('sel').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to:'signoff', note: note()}}); }, 'Selected. Send the selection notice and the documents to sign.'); };
+  if ($('notsel')) $('notsel').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to:'closed', outcome:'Not selected', note: note()}}); }, 'Closed as not selected.'); };
+  if ($('reopen')) $('reopen').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to:'received', note: note()}}); }, 'Reopened.'); };
+  if ($('close')) $('close').onclick = function(){ act(function(){ return api(base + 'stage', {method:'POST', body:{to:'closed', outcome: $('outcome').value, note: note()}}); }, 'File closed.'); };
+  if ($('fup')) $('fup').onclick = function(){ var f = $('ffile').files[0]; if (!f) return toast('Choose a file first.', true); var fd = new FormData(); fd.append('kind', $('fkind').value); fd.append('file', f); act(function(){ return api(base + 'files', {method:'POST', form: fd}); }, 'File stored.'); };
+  if ($('asel')) { ensureUsers().then(function(us){ $('asel').innerHTML = '<option value="">Choose a person</option>' + us.filter(function(u){ return u.role !== 'admin'; }).map(function(u){ return '<option value="' + esc(u.email) + '">' + esc(u.email) + ' (' + esc(u.role) + ')</option>'; }).join(''); }); }
+  if ($('assign')) $('assign').onclick = function(){ var e = $('asel').value; if (!e) return; act(function(){ return api(base + 'assign', {method:'POST', body:{email:e}}); }, 'Assigned.'); };
+  app.querySelectorAll('[data-unassign]').forEach(function(b){ b.onclick = function(){ act(function(){ return api(base + 'unassign', {method:'POST', body:{email:b.dataset.unassign}}); }, 'Removed.'); }; });
+  function drawScores(){ var el = $('rscores'); if (!el) return; el.innerHTML = $('rstep').value === 'editorial' ? ME.scoreKeys.map(function(k){ return '<label>' + esc(SCORE_LABELS[k]) + '</label><select data-score="' + k + '"><option value="">Score 1 to 5</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>'; }).join('') : ''; }
+  if ($('rstep')) { $('rstep').onchange = drawScores; drawScores(); }
+  if ($('rsave')) $('rsave').onclick = function(){ var sc = {}; app.querySelectorAll('[data-score]').forEach(function(x){ sc[x.dataset.score] = x.value; }); act(function(){ return api(base + 'review', {method:'POST', body:{step:$('rstep').value, decision:$('rdec').value, notes:$('rnotes').value, scores: sc}}); }, 'Review saved.'); };
+  if ($('nload')) $('nload').onclick = async function(){ try { var t = await api(base + 'notice/preview', {method:'POST', body:{kind:$('nkind').value}}); $('nsubj').value = t.subject; $('nbody').value = t.body; } catch(e){ toast(e.message, true); } };
+  if ($('nsend')) $('nsend').onclick = function(){ if (!$('nsubj').value.trim()) return toast('Load or write the notice first.', true); act(function(){ return api(base + 'notice/send', {method:'POST', body:{kind:$('nkind').value, subject:$('nsubj').value, body:$('nbody').value}}); }, function(r){ return r.status === 'sent' ? 'Notice sent.' : 'Notice recorded (' + r.status + ').'; }); };
+  app.querySelectorAll('[data-sent]').forEach(function(b){ b.onclick = function(){ var k = b.dataset.sent; var ref = app.querySelector('[data-ref="' + k + '"]').value; act(function(){ return api(base + 'agreement', {method:'POST', body:{kind:k, action:'sent', signing_ref: ref}}); }, 'Marked sent.'); }; });
+  app.querySelectorAll('[data-signed]').forEach(function(b){ b.onclick = function(){ var k = b.dataset.signed; var fid = app.querySelector('[data-afile="' + k + '"]').value; var ref = app.querySelector('[data-ref="' + k + '"]').value; act(function(){ return api(base + 'agreement', {method:'POST', body:{kind:k, action:'signed', file_id: fid, signing_ref: ref}}); }, 'Marked signed.'); }; });
+  app.querySelectorAll('[data-areset]').forEach(function(b){ b.onclick = function(){ act(function(){ return api(base + 'agreement', {method:'POST', body:{kind:b.dataset.areset, action:'reset'}}); }, 'Reset.'); }; });
+  app.querySelectorAll('[data-pkgsave]').forEach(function(b){ b.onclick = function(){ var tr = b.closest('tr'), v = {item: ME.packageItems[Number(b.dataset.pkgsave)]}; tr.querySelectorAll('[data-k]').forEach(function(x){ v[x.dataset.k] = x.value; }); act(function(){ return api(base + 'package', {method:'POST', body:v}); }, 'Saved.'); }; });
+  if ($('rsel')) { ensureRecipients().then(function(rs){ var have = d.sends.map(function(x){ return x.recipient_id; }); $('rsel').innerHTML = '<option value="">Choose from the recipient list</option>' + rs.filter(function(r){ return have.indexOf(r.id) < 0; }).map(function(r){ return '<option value="' + r.id + '">' + esc(r.company) + (r.contact_name ? ' · ' + esc(r.contact_name) : '') + '</option>'; }).join(''); }); }
+  if ($('radd')) $('radd').onclick = function(){ var id = $('rsel').value; if (!id) return; act(function(){ return api(base + 'sends', {method:'POST', body:{recipient_id: Number(id)}}); }, 'Recipient added.'); };
+  app.querySelectorAll('[data-sendsave]').forEach(function(b){ b.onclick = function(){ var tr = b.closest('tr'), v = {}; tr.querySelectorAll('[data-k]').forEach(function(x){ v[x.dataset.k] = x.type === 'checkbox' ? x.checked : x.value; }); act(function(){ return api('sends/' + b.dataset.sendsave, {method:'PATCH', body:v}); }, 'Saved.'); }; });
+  app.querySelectorAll('[data-senddel]').forEach(function(b){ b.onclick = function(){ act(function(){ return api('sends/' + b.dataset.senddel, {method:'DELETE'}); }, 'Removed.'); }; });
+  $('nadd').onclick = function(){ var t = $('note').value.trim(); if (!t) return; act(function(){ return api(base + 'note', {method:'POST', body:{text:t}}); }, 'Note added.'); };
+}
+
+async function ensureRecipients(){ RECIPIENTS = (await api('recipients')).recipients; return RECIPIENTS; }
+async function ensureUsers(){ USERS = (await api('users')).users; return USERS; }
+
+// ---------- recipients ----------
+async function viewRecipients(editId){
+  navHtml('recipients');
+  var rs = await ensureRecipients();
+  var cur = rs.find(function(r){ return String(r.id) === String(editId); }) || {};
+  app.innerHTML = '<h1>Recipients</h1><p class="sub">Producers and companies that proposal packages can go to.</p>' +
+    '<div class="card wrap-x">' + (rs.length ? '<table><thead><tr><th>Company</th><th>Contact</th><th>Genres</th><th>Own release form</th><th>Source</th><th>Stories</th><th></th></tr></thead><tbody>' +
+      rs.map(function(r){ return '<tr><td><b>' + esc(r.company) + '</b>' + (r.rules ? '<div class="small muted" style="white-space:pre-wrap">' + esc(r.rules) + '</div>' : '') + '</td><td>' + esc(r.contact_name) + (r.email ? '<div class="small"><a href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a></div>' : '') + '</td><td>' + esc(r.genres) + '</td><td>' + (r.own_release ? 'Yes' : 'No') + '</td><td class="small">' + esc(r.source) + '</td><td>' + r.send_count + '</td><td><a href="#/recipients/' + r.id + '">Edit</a>' + (r.send_count ? '' : ' · <a href="#" data-del="' + r.id + '">Remove</a>') + '</td></tr>'; }).join('') + '</tbody></table>' : '<p class="muted">The list is empty. Add the first producer or company below.</p>') + '</div>' +
+    '<div class="card"><h2>' + (cur.id ? 'Edit ' + esc(cur.company) : 'Add a recipient') + '</h2><div class="grid" style="gap:0 16px">' +
+    '<div><label for="rc">Company</label><input id="rc" style="width:100%" value="' + esc(cur.company) + '"></div>' +
+    '<div><label for="rn">Contact name</label><input id="rn" style="width:100%" value="' + esc(cur.contact_name) + '"></div>' +
+    '<div><label for="re">Contact email</label><input id="re" type="email" style="width:100%" value="' + esc(cur.email) + '"></div>' +
+    '<div><label for="rg">Genres</label><input id="rg" style="width:100%" value="' + esc(cur.genres) + '" placeholder="Drama, true crime, history"></div>' +
+    '<div><label for="rsrc">Where we found it</label><input id="rsrc" style="width:100%" value="' + esc(cur.source) + '" placeholder="IMDbPro, referral"></div>' +
+    '<div><label><input type="checkbox" id="ro"' + (cur.own_release ? ' checked' : '') + '> Requires its own release form</label></div></div>' +
+    '<label for="rr">Submission rules</label><textarea id="rr">' + esc(cur.rules) + '</textarea>' +
+    '<p class="row"><button id="rsave">' + (cur.id ? 'Save changes' : 'Add recipient') + '</button>' + (cur.id ? '<a class="btn ghost" href="#/recipients">Cancel</a>' : '') + '</p></div>';
+  document.getElementById('rsave').onclick = function(){
+    var v = { company: rc.value, contact_name: rn.value, email: re.value, genres: rg.value, source: rsrc.value, own_release: ro.checked, rules: rr.value };
+    act(function(){ return api('recipients' + (cur.id ? '/' + cur.id : ''), {method: cur.id ? 'PATCH' : 'POST', body: v}).then(function(r){ if (cur.id) location.hash = '#/recipients'; return r; }); }, 'Saved.');
+  };
+  app.querySelectorAll('[data-del]').forEach(function(a){ a.onclick = function(e){ e.preventDefault(); act(function(){ return api('recipients/' + a.dataset.del, {method:'DELETE'}); }, 'Removed.'); }; });
+}
+
+// ---------- users ----------
+async function viewUsers(){
+  navHtml('users');
+  var us = await ensureUsers();
+  var ROLE_TEXT = { admin:'Everything', reviewer:'Screens and scores assigned stories', legal:'Sees everything; legal review, agreements, exports', writer:'Proposal package for assigned stories' };
+  app.innerHTML = '<h1>Users</h1><p class="sub">People who can sign in to the admin site.</p>' +
+    '<p class="lock">Adding someone here sets their role. They also need to be on the sign-in list in Cloudflare Access before they can reach this address.</p>' +
+    '<div class="card wrap-x"><table><thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Can do</th><th></th></tr></thead><tbody>' +
+    us.map(function(u){ return '<tr><td>' + esc(u.email) + '</td><td>' + esc(u.name) + '</td><td>' + esc(u.role) + '</td><td class="small">' + esc(ROLE_TEXT[u.role] || '') + '</td><td>' + (u.email === ME.user.email ? '<span class="small muted">you</span>' : '<a href="#" data-del="' + esc(u.email) + '">Remove</a>') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+    '<div class="card"><h2>Add or change a user</h2><div class="row"><div><label for="ue">Email</label><input id="ue" type="email" style="min-width:240px"></div><div><label for="un">Name</label><input id="un"></div><div><label for="ur">Role</label><select id="ur">' + ME.roles.map(function(r){ return '<option>' + r + '</option>'; }).join('') + '</select></div><button id="usave">Save</button></div></div>';
+  document.getElementById('usave').onclick = function(){ act(function(){ return api('users', {method:'POST', body:{email: ue.value, name: un.value, role: ur.value}}); }, 'Saved. Add them to the Access sign-in list too.'); };
+  app.querySelectorAll('[data-del]').forEach(function(a){ a.onclick = function(e){ e.preventDefault(); act(function(){ return api('users/' + encodeURIComponent(a.dataset.del), {method:'DELETE'}); }, 'Removed.'); }; });
+}
+
+// ---------- ledger ----------
+async function viewLedger(){
+  navHtml('ledger');
+  var d = await api('ledger');
+  var c = d.chain;
+  app.innerHTML = '<h1>History check</h1><p class="sub">Recomputes the fingerprint of every history entry and confirms each links to the one before it.</p>' +
+    '<div class="card">' + (c.ok ? '<p><span class="pill ok">Intact</span> All ' + c.count + ' entries check out.</p><p class="small muted">Latest fingerprint</p><p class="mono">' + esc(c.head) + '</p>' : '<p><span class="pill bad">Broken</span> Entry ' + esc(c.brokenAt) + ': ' + esc(c.reason) + '.</p>') + '</div>' +
+    '<div class="card wrap-x"><h2>Latest 200 entries</h2><table><thead><tr><th>#</th><th>When</th><th>Who</th><th>What</th><th>Receipt</th><th>Fingerprint</th></tr></thead><tbody>' +
+    d.events.map(function(e){ return '<tr><td>' + e.id + '</td><td class="small">' + when(e.at) + '</td><td class="small">' + esc(e.actor) + '</td><td>' + esc(ACTION_LABELS[e.action] || e.action.replace(/_/g,' ')) + '</td><td class="mono">' + (e.receipt ? '<a href="#/s/' + esc(e.receipt) + '">' + esc(e.receipt) + '</a>' : '') + '</td><td class="mono" title="' + esc(e.hash) + '">' + short(e.hash) + '</td></tr>'; }).join('') + '</tbody></table></div>';
+}
+
+// ---------- routing ----------
+async function route(){
+  var h = location.hash.replace(/^#\/?/, '');
+  var p = h.split('/');
+  try {
+    if (!ME) { ME = await api('me'); document.getElementById('who').textContent = ME.user.email + ' · ' + ME.user.role; }
+    if (p[0] === 's' && p[1]) await viewSubmission(decodeURIComponent(p[1]));
+    else if (p[0] === 'recipients') await viewRecipients(p[1]);
+    else if (p[0] === 'users') await viewUsers();
+    else if (p[0] === 'ledger') await viewLedger();
+    else await viewList();
+  } catch(e) {
+    app.innerHTML = '<h1>Something went wrong</h1><p>' + esc(e.message) + '</p><p><a href="#/">Back to submissions</a></p>';
+  }
+}
+window.addEventListener('hashchange', function(){ window.scrollTo(0,0); route(); });
+route();
+})();
+</script>
+</body>
+</html>

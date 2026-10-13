@@ -1,0 +1,21 @@
+# Cloudflare Pages configuration for the Untold Stories site and admin.
+name = "untold-stories"
+pages_build_output_dir = "public"
+compatibility_date = "2024-09-23"
+
+[vars]
+ADMIN_HOSTS = "admin.limitedseries.net"
+OWNER_EMAIL = "edward.howlette@gmail.com,ed@nexgen.us"
+ACCESS_TEAM_DOMAIN = "broad-violet-db42.cloudflareaccess.com"
+ACCESS_AUD = "84834c93c651223d1ca7c55cab4886d7d7de28d7f621434530604bddbd713f86"
+SUBMISSIONS_MODE = "test"
+MAIL_FROM = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "untold-stories"
+database_id = "73f0584c-30f3-41be-889e-4439ff3c605a"
+
+[[r2_buckets]]
+binding = "FILES"
+bucket_name = "untold-stories-files"

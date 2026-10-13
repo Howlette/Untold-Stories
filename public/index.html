@@ -188,6 +188,10 @@ fieldset{border:0;padding:0;margin:0;display:grid;gap:10px}
 .result strong{font-family:var(--font-display);font-size:1.3rem;letter-spacing:.04em;text-transform:uppercase}
 .result.bad strong{color:var(--bad)}
 .result.good strong{color:var(--ok)}
+.result .receipt{display:grid;grid-template-columns:minmax(120px,220px) 1fr;gap:4px 14px;margin:0;font-size:var(--step--1)}
+.result .receipt dt{color:var(--dust)}
+.result .receipt dd{margin:0;font-family:var(--font-type)}
+@media (max-width:560px){.result .receipt{grid-template-columns:1fr}}
 
 /* terms */
 .draft{font-family:var(--font-type);font-size:var(--step--1);border:1.5px dashed var(--amber);color:var(--paper);padding:12px 14px;max-width:78ch}
@@ -364,7 +368,8 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
         <h2 id="h-submit">Tell us who they were</h2>
       </div>
       <form class="formcard" id="storyform" novalidate>
-        <p class="notice">Preview only. Submissions open after our legal review is complete. Nothing you enter here is sent.</p>
+        <p class="notice">Test mode. Submissions are recorded for testing only. Submissions open to the public after our legal review is complete.</p>
+        <div aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden"><label for="website">Leave this empty</label><input type="text" id="website" tabindex="-1" autocomplete="off"></div>
         <div class="grid2">
           <div class="field"><label for="fname">Your full name <span class="req">*</span></label><input type="text" id="fname" autocomplete="name"></div>
           <div class="field"><label for="email">Email <span class="req">*</span></label><input type="email" id="email" autocomplete="email"></div>
@@ -478,7 +483,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
   }
 
 
-  // Validation (preview only; nothing is sent)
+  // Validation, then submission to the server
   var REG = /^(TX|TXU|PA|PAU|VA|VAU|SR|SRU)\s?\d{1,2}-\d{3}-\d{3}$/i;
   var form = document.getElementById('storyform'), out = document.getElementById('result');
   var req = [
@@ -517,13 +522,58 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
       var ul = document.createElement('ul');
       errs.forEach(function(e){ var li = document.createElement('li'); li.textContent = e; ul.appendChild(li); });
       out.appendChild(h); out.appendChild(ul);
-    } else {
-      out.className = 'result good';
-      h.textContent = 'Ready to submit';
-      var p = document.createElement('p');
-      p.textContent = 'Everything is complete. This is a preview, so nothing was sent. Submissions open after our legal review.';
-      out.appendChild(h); out.appendChild(p);
+      out.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'nearest'});
+      return;
     }
+    var btn = form.querySelector('button[type="submit"]');
+    var fd = new FormData();
+    ['fname','email','phone','title','whose','living','era','where','summary','regno','website'].forEach(function(id){ fd.append(id, document.getElementById(id).value); });
+    fd.append('story', st.files[0]);
+    Array.prototype.forEach.call(document.getElementById('files').files, function(f){ fd.append('files', f); });
+    ['c-age','c-own','c-reg','c-terms'].forEach(function(id){ fd.append(id, document.getElementById(id).checked ? 'yes' : ''); });
+    btn.disabled = true; btn.textContent = 'Sending…';
+    out.className = 'result good';
+    h.textContent = 'Uploading your story';
+    out.appendChild(h);
+    fetch('/api/submit', {method: 'POST', body: fd}).then(function(r){
+      return r.json().catch(function(){ return {}; }).then(function(d){ return {ok: r.ok, d: d}; });
+    }).then(function(x){
+      out.innerHTML = '';
+      var hh = document.createElement('strong');
+      if (!x.ok || !x.d.receipt) {
+        out.className = 'result bad';
+        hh.textContent = 'Your story was not sent';
+        var pe = document.createElement('p'); pe.textContent = (x.d && x.d.error) || 'Something went wrong. Try again.';
+        out.appendChild(hh); out.appendChild(pe);
+        btn.disabled = false; btn.textContent = 'Submit story';
+        return;
+      }
+      var d = x.d;
+      out.className = 'result good';
+      hh.textContent = 'Received. Your receipt number is ' + d.receipt;
+      out.appendChild(hh);
+      var dl = document.createElement('dl'); dl.className = 'receipt';
+      [['Received', new Date(d.received_at).toUTCString()], ['Story title', d.title], ['Copyright registration', d.regno], ['Story file fingerprint', d.story_sha256], ['Submission record fingerprint', d.record_sha256]].forEach(function(row){
+        var dt = document.createElement('dt'); dt.textContent = row[0];
+        var dd = document.createElement('dd'); dd.textContent = row[1];
+        if (row[0].indexOf('fingerprint') >= 0) dd.style.wordBreak = 'break-all';
+        dl.appendChild(dt); dl.appendChild(dd);
+      });
+      out.appendChild(dl);
+      var p = document.createElement('p');
+      p.appendChild(document.createTextNode((d.emailed ? 'We emailed this receipt to you. ' : 'Save this page or write down the receipt number. ') + 'You can check it at any time on our '));
+      var a = document.createElement('a'); a.href = '/verify/?receipt=' + encodeURIComponent(d.receipt); a.textContent = 'receipt check page';
+      p.appendChild(a); p.appendChild(document.createTextNode('.'));
+      out.appendChild(p);
+      btn.textContent = 'Submitted';
+    }).catch(function(){
+      out.innerHTML = '';
+      out.className = 'result bad';
+      var hh = document.createElement('strong'); hh.textContent = 'Your story was not sent';
+      var pe = document.createElement('p'); pe.textContent = 'Check your connection and try again.';
+      out.appendChild(hh); out.appendChild(pe);
+      btn.disabled = false; btn.textContent = 'Submit story';
+    });
     out.scrollIntoView({behavior: reduce ? 'auto' : 'smooth', block: 'nearest'});
   });
 })();
