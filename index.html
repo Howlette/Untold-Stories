@@ -343,12 +343,12 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
         <h2 id="h-how">Four steps to share a story</h2>
       </div>
       <ol class="steps">
-        <li class="reveal"><span class="num">1</span><h3>Write it down</h3><p>Tell the story in your own words. Include names, places, and dates where you know them. The form takes a summary of up to 1,000 words.</p></li>
-        <li class="reveal key"><span class="num">2</span><h3>Register your copyright</h3><p>Register your written story with the United States Copyright Office before you submit. We cannot accept a story without a registration number. Registration can take several months, so start early.</p>
+        <li class="reveal"><span class="num">1</span><h3>Write it down</h3><p>Write the full story in your own words, at whatever length it takes. Include names, places, and dates where you know them.</p></li>
+        <li class="reveal key"><span class="num">2</span><h3>Register your copyright</h3><p>Register your full written story with the United States Copyright Office before you submit. Register the story itself, not a summary. We cannot accept a story without a registration number. Registration can take several months, so start early.</p>
           <div class="regno"><small>Example registration number</small>TXu 2-345-678</div>
           <a href="https://www.copyright.gov/registration/" target="_blank" rel="noopener">Register at copyright.gov</a></li>
         <li class="reveal"><span class="num">3</span><h3>Gather your proof</h3><p>Collect copies of photographs, letters, news clippings, service records, or court papers. Send copies only. Keep your originals.</p></li>
-        <li class="reveal"><span class="num">4</span><h3>Submit the form</h3><p>Enter your registration number, a summary of the story, and your agreement to the submission terms.</p></li>
+        <li class="reveal"><span class="num">4</span><h3>Submit the form</h3><p>Upload the same full story you registered, enter its registration number, and agree to the submission terms.</p></li>
       </ol>
       <div class="next reveal">
         <h3>What happens next</h3>
@@ -377,9 +377,11 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
           <div class="field"><label for="era">When did it happen? <span class="req">*</span></label>
             <select id="era"><option value="">Choose a decade</option><option>Before 1940</option><option>1940s</option><option>1950s</option><option>1960s</option><option>1970s</option><option>1980s</option><option>1990s</option><option>2000s or later</option></select></div>
           <div class="field"><label for="where">Where did it happen? <span class="req">*</span></label><input type="text" id="where" placeholder="City and state"></div>
-          <div class="field full"><label for="summary">Summary of the story <span class="req">*</span></label>
-            <textarea id="summary" placeholder="Who they were, what they faced, what they risked, and what changed because of them."></textarea>
-            <div class="count" id="count" aria-live="polite">0 of 1,000 words</div></div>
+          <div class="field full"><label for="story">Your full story <span class="req">*</span></label>
+            <input type="file" id="story" accept=".pdf,.doc,.docx,.txt,.rtf">
+            <span class="hint">Upload the complete story you registered with the Copyright Office. PDF, Word, or text file. No length limit.</span></div>
+          <div class="field full"><label for="summary">Anything else we should know</label>
+            <textarea id="summary" placeholder="Optional. Who they were, what they faced, and what changed because of them."></textarea></div>
           <div class="field"><label for="regno">Copyright registration number <span class="req">*</span></label><input type="text" id="regno" placeholder="TXu 2-345-678" autocomplete="off"><span class="hint">From your certificate of registration.</span></div>
           <div class="field"><label for="files">Copies of supporting records</label><input type="file" id="files" multiple accept=".pdf,.jpg,.jpeg,.png"><span class="hint">PDF or image files. Copies only.</span></div>
         </div>
@@ -387,7 +389,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
           <p class="legend">Your agreement <span class="req">*</span></p>
           <label class="check" for="c-age"><input type="checkbox" id="c-age">I am 18 or older.</label>
           <label class="check" for="c-own"><input type="checkbox" id="c-own">I wrote this story, or I have written permission from its owner to submit it.</label>
-          <label class="check" for="c-reg"><input type="checkbox" id="c-reg">I registered the copyright for my written story, and the number above is correct.</label>
+          <label class="check" for="c-reg"><input type="checkbox" id="c-reg">I registered the copyright for the full story I am uploading, and the number above is correct.</label>
           <label class="check" for="c-terms"><input type="checkbox" id="c-terms">I have read and agree to the submission terms below.</label>
         </fieldset>
         <div><button class="btn btn-solid" type="submit">Submit story</button></div>
@@ -406,7 +408,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
       <div class="terms">
         <details open><summary><span class="tn">01</span>Who we are</summary><div><p>This website is operated by <span class="ph">[Company legal name]</span> ("we" or "us"). Untold Stories and Unsung Heroes is the name of our series and our story program.</p></div></details>
         <details><summary><span class="tn">02</span>Who may submit</summary><div><p>You must be 18 or older. Submit only stories you wrote yourself or have written permission to submit.</p></div></details>
-        <details><summary><span class="tn">03</span>Copyright registration is required</summary><div><p>Before you submit, you must register your written story with the United States Copyright Office and give us the registration number. Registration is your responsibility and at your own cost.</p><p>Copyright protects the way you wrote your story. It does not protect facts, historical events, or general ideas, which anyone may use.</p></div></details>
+        <details><summary><span class="tn">03</span>Copyright registration is required</summary><div><p>Before you submit, you must register your written story with the United States Copyright Office and give us the registration number. Register the full story, not a summary, and upload that same registered work with your submission. Registration is your responsibility and at your own cost.</p><p>Copyright protects the way you wrote your story. It does not protect facts, historical events, or general ideas, which anyone may use.</p></div></details>
         <details><summary><span class="tn">04</span>No confidential relationship</summary><div><p>Submitting a story does not create a confidential, fiduciary, or other special relationship between you and us.</p></div></details>
         <details><summary><span class="tn">05</span>Similar stories and projects</summary><div><p>We receive many stories and develop our own projects. Material similar to yours may already exist, may be in development, or may come to us from others. A project that resembles your submission does not by itself mean we used it, and we owe you nothing because of a resemblance. We use a submitted story only under a signed agreement with its owner.</p></div></details>
         <details><summary><span class="tn">06</span>No obligation</summary><div><p>We are not required to review, respond to, return, use, or pay for any submission.</p></div></details>
@@ -475,15 +477,6 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
     });
   }
 
-  // Word counter
-  var summary = document.getElementById('summary'), count = document.getElementById('count');
-  function words(s){ var m = s.trim().match(/\S+/g); return m ? m.length : 0; }
-  function updateCount(){
-    var n = words(summary.value);
-    count.textContent = n.toLocaleString('en-US') + ' of 1,000 words';
-    count.classList.toggle('over', n > 1000);
-  }
-  summary.addEventListener('input', updateCount); updateCount();
 
   // Validation (preview only; nothing is sent)
   var REG = /^(TX|TXU|PA|PAU|VA|VAU|SR|SRU)\s?\d{1,2}-\d{3}-\d{3}$/i;
@@ -495,8 +488,7 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
     ['whose','Choose whose story this is.'],
     ['living','Tell us whether the main people are living.'],
     ['era','Choose the decade when it happened.'],
-    ['where','Tell us where it happened.'],
-    ['summary','Write a summary of the story.']
+    ['where','Tell us where it happened.']
   ];
   form.addEventListener('submit', function(ev){
     ev.preventDefault();
@@ -508,7 +500,8 @@ footer .wrap{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-bet
     });
     var em = document.getElementById('email');
     if (em.value.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em.value.trim())) { errs.push('Check the email address. It should look like name@example.com.'); em.classList.add('invalid'); }
-    if (words(summary.value) > 1000) { errs.push('Shorten the summary to 1,000 words or fewer.'); summary.classList.add('invalid'); }
+    var st = document.getElementById('story');
+    if (!st.files || !st.files.length) { errs.push('Upload your full story, the same work you registered.'); st.classList.add('invalid'); }
     var rg = document.getElementById('regno');
     if (!rg.value.trim()) { errs.push('Enter your copyright registration number. We cannot accept a story without one.'); rg.classList.add('invalid'); }
     else if (!REG.test(rg.value.trim())) { errs.push('Check the registration number. It should look like TXu 2-345-678, as printed on your certificate.'); rg.classList.add('invalid'); }
