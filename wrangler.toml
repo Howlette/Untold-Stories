@@ -5,9 +5,9 @@ compatibility_date = "2024-09-23"
 
 [vars]
 ADMIN_HOSTS = "admin.limitedseries.net"
-OWNER_EMAIL = "edward.howlette@gmail.com,ed@nexgen.us"
-ACCESS_TEAM_DOMAIN = "broad-violet-db42.cloudflareaccess.com"
-ACCESS_AUD = "84834c93c651223d1ca7c55cab4886d7d7de28d7f621434530604bddbd713f86"
+OWNER_EMAIL = "ed@nexgen.us"
+# Starting password for the owner, stored only as a hash. It is used once, at first sign-in; change it in the admin under My account.
+OWNER_PASSWORD_HASH = "pbkdf2$100000$Zpm5COj8RZZycbq2KDau2w==$myq3PvT6kIxw1g1Lt1vHg95Akos+ZiFAXrh+N04hVVo="
 SUBMISSIONS_MODE = "test"
 MAIL_FROM = ""
 

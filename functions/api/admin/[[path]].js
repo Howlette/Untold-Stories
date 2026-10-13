@@ -2,7 +2,7 @@
 import { STAGES, STAGE_KEYS, PACKAGE_ITEMS, addEvent, verifyChain, storeFile } from '../../../lib/db.js';
 import { json, fail, nowIso, clean, EMAIL_PATTERN } from '../../../lib/util.js';
 import { sendMail, template, mailConfigured } from '../../../lib/mail.js';
-import { ROLES } from '../../../lib/auth.js';
+import { ROLES, setPassword, passwordProblem, endSessions } from '../../../lib/auth.js';
 
 const REVIEW_STEPS = ['screening', 'editorial', 'legal'];
 const AGREEMENT_KINDS = ['acknowledgement', 'rights'];
@@ -335,7 +335,8 @@ async function recipients(env, user, method, id, b) {
 async function users(env, user, method, id, b) {
   if (!isAdmin(user)) deny();
   if (method === 'GET') {
-    const { results } = await env.DB.prepare('SELECT * FROM users ORDER BY role, email').all();
+    const { results } = await env.DB.prepare(`SELECT u.*, a.last_login, a.must_change, (a.email IS NOT NULL) AS has_password
+      FROM users u LEFT JOIN accounts a ON a.email = u.email ORDER BY u.role, u.email`).all();
     return { users: results };
   }
   if (method === 'DELETE') {
@@ -343,6 +344,8 @@ async function users(env, user, method, id, b) {
     if (email === user.email) bad('You cannot remove yourself.');
     await env.DB.prepare('DELETE FROM users WHERE email = ?1').bind(email).run();
     await env.DB.prepare('DELETE FROM assignments WHERE email = ?1').bind(email).run();
+    await env.DB.prepare('DELETE FROM accounts WHERE email = ?1').bind(email).run();
+    await endSessions(env, email);
     await addEvent(env, { actor: user.email, action: 'user_removed', detail: { email } });
     return { ok: true };
   }
@@ -351,10 +354,21 @@ async function users(env, user, method, id, b) {
   if (!EMAIL_PATTERN.test(email)) bad('Enter a valid email address.');
   if (!ROLES.includes(role)) bad('Choose a role.');
   if (email === user.email && role !== 'admin') bad('You cannot remove your own administrator role.');
+  const password = typeof b.password === 'string' ? b.password : '';
+  const hasAcct = await env.DB.prepare('SELECT 1 FROM accounts WHERE email = ?1').bind(email).first();
+  if (!hasAcct && !password) bad('Give the new user a temporary password.');
+  if (password) {
+    const problem = passwordProblem(password);
+    if (problem) bad(problem);
+  }
   await env.DB.prepare(`INSERT INTO users (email, name, role, added_at, added_by) VALUES (?1, ?2, ?3, ?4, ?5)
     ON CONFLICT(email) DO UPDATE SET name = ?2, role = ?3`).bind(email, clean(b.name, 200), role, nowIso(), user.email).run();
-  await addEvent(env, { actor: user.email, action: 'user_saved', detail: { email, role } });
-  return { ok: true, note: 'Also add this email to the Access sign-in policy so they can reach the admin address.' };
+  if (password) {
+    await setPassword(env, email, password, email !== user.email);
+    if (email !== user.email) await endSessions(env, email);
+  }
+  await addEvent(env, { actor: user.email, action: 'user_saved', detail: { email, role, password_set: Boolean(password) } });
+  return { ok: true };
 }
 
 async function exportRecord(env, user, s) {
@@ -378,6 +392,12 @@ export async function onRequest(context) {
   try {
     const [a, b, c, d] = parts;
     if (method === 'GET' && a === 'me') return json(await me(env, user));
+    if (method === 'GET' && a === 'counts') {
+      const q = seesAll(user)
+        ? env.DB.prepare('SELECT stage, COUNT(*) AS n FROM submissions GROUP BY stage')
+        : env.DB.prepare('SELECT stage, COUNT(*) AS n FROM submissions WHERE id IN (SELECT submission_id FROM assignments WHERE email = ?1) GROUP BY stage').bind(user.email);
+      return json({ counts: Object.fromEntries((await q.all()).results.map(r => [r.stage, r.n])) });
+    }
     if (method === 'GET' && a === 'ledger') {
       if (!isAdmin(user) && user.role !== 'legal') deny();
       const chain = await verifyChain(env);

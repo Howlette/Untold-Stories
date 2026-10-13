@@ -19,14 +19,24 @@
 *{box-sizing:border-box}
 body{margin:0;background:var(--ink);color:var(--paper);font:15px/1.5 var(--body)}
 a{color:var(--amber)}
-header{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--stage);position:sticky;top:0;z-index:5}
+.shell{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.side{background:var(--stage);border-right:1px solid var(--line);position:sticky;top:0;height:100vh;overflow-y:auto;display:flex;flex-direction:column;padding:18px 12px}
+.side .brand{padding:0 10px 16px;border-bottom:1px solid var(--line);margin-bottom:10px}
+.navgroup{margin:10px 0 4px;padding:0 10px;font:600 11px var(--display);text-transform:uppercase;letter-spacing:.08em;color:var(--dust)}
+.side a.nl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--paper);font:15px var(--display)}
+.side a.nl:hover{background:var(--raise)}
+.side a.nl.on{background:var(--amber);color:var(--amber-ink);font-weight:700}
+.side a.nl.nsub{padding-left:22px;font-size:14px;color:var(--dust)}
+.side a.nl.nsub.on{color:var(--amber-ink)}
+.side a.nl .n{font-size:12px;min-width:22px;text-align:center;border-radius:999px;padding:0 6px;background:var(--raise);color:var(--paper)}
+.side a.nl.on .n{background:rgba(0,0,0,.15);color:var(--amber-ink)}
+.side .foot{margin-top:auto;padding:12px 0 0;border-top:1px solid var(--line);font-size:13px;color:var(--dust)}
+.side .foot .who{overflow-wrap:anywhere;margin:0 10px 6px}
+.side .foot button{width:calc(100% - 20px);margin:8px 10px 0}
+.topbar{display:none}
 .brand{font:700 18px var(--display);text-transform:uppercase;letter-spacing:.04em}
 .brand span{color:var(--amber)}
-nav{display:flex;gap:4px;flex-wrap:wrap}
-nav a{padding:6px 10px;border-radius:6px;text-decoration:none;color:var(--paper);font-family:var(--display);font-size:15px;white-space:nowrap}
-nav a.on{background:var(--amber);color:var(--amber-ink)}
-.who{margin-left:auto;color:var(--dust);font-size:13px}
-main{max-width:1180px;margin:0 auto;padding:20px 16px 80px}
+main{max-width:1180px;width:100%;margin:0 auto;padding:24px 24px 80px;min-width:0}
 h1{font:700 26px/1.1 var(--display);text-transform:uppercase;margin:0 0 6px}
 h2{font:700 17px var(--display);text-transform:uppercase;letter-spacing:.03em;margin:0 0 10px}
 .sub{color:var(--dust);margin:0 0 16px}
@@ -75,16 +85,28 @@ dd{margin:0;overflow-wrap:anywhere}
 .test{color:var(--warn);font:600 11px var(--display);text-transform:uppercase;margin-left:6px}
 pre.notice{white-space:pre-wrap;font:13px var(--mono);background:var(--raise);padding:8px;border-radius:6px;margin:6px 0 0}
 details summary{cursor:pointer}
-@media (max-width:640px){dl{grid-template-columns:1fr}.who{margin-left:0;width:100%}header{position:static}}
+@media (max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--stage);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:6}
+  .side{position:fixed;inset:0 auto 0 0;width:270px;z-index:7;transform:translateX(-100%);transition:transform .2s;box-shadow:0 0 30px rgba(0,0,0,.4)}
+  .shell.open .side{transform:none}
+  main{padding:18px 16px 80px}
+}
+@media (max-width:640px){dl{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand">Untold Unsung <span>Admin</span></div>
-  <nav id="nav"></nav>
-  <div class="who" id="who"></div>
-</header>
-<main id="app"><p class="muted">Loading…</p></main>
+<div class="shell" id="shell">
+  <aside class="side" id="side" aria-label="Admin navigation">
+    <div class="brand">Untold Unsung <span>Admin</span></div>
+    <nav id="nav"></nav>
+    <div class="foot"><div class="who" id="who"></div><a class="nl" href="#/account" id="acctlink">My account</a><button class="ghost" id="signout">Sign out</button></div>
+  </aside>
+  <div>
+    <div class="topbar"><div class="brand">Untold Unsung <span>Admin</span></div><button class="ghost" id="menu" aria-controls="side" aria-expanded="false">Menu</button></div>
+    <main id="app"><p class="muted">Loading…</p></main>
+  </div>
+</div>
 <div id="msg" class="msg" hidden role="status" aria-live="polite"></div>
 <script>
 (function(){
@@ -105,7 +127,8 @@ async function api(path, opts){
   var init = { method: opts.method || 'GET', headers: {} , credentials: 'same-origin'};
   if (opts.form) { init.body = opts.form; }
   else if (opts.body !== undefined) { init.body = JSON.stringify(opts.body); init.headers['content-type'] = 'application/json'; }
-  var r = await fetch('/api/admin/' + path, init);
+  var r = await fetch((path.indexOf('/') === 0 ? '' : '/api/admin/') + path, init);
+  if (r.status === 401) { location.href = '/login'; throw new Error('Your session has ended.'); }
   var data = null;
   try { data = await r.json(); } catch(e) {}
   if (!r.ok) { var err = new Error((data && data.error) || ('The server returned ' + r.status + '.')); err.status = r.status; throw err; }
@@ -116,11 +139,20 @@ async function act(fn, okText){
   catch(e){ toast(e.message, true); }
 }
 
+var COUNTS = {};
 function navHtml(cur){
-  var items = [['#/','Submissions','list']];
-  if (ME.user.role === 'admin') items.push(['#/recipients','Recipients','recipients'],['#/users','Users','users']);
-  if (ME.user.role === 'admin' || ME.user.role === 'legal') items.push(['#/ledger','History check','ledger']);
-  document.getElementById('nav').innerHTML = items.map(function(i){ return '<a href="'+i[0]+'" class="'+(cur===i[2]?'on':'')+'">'+i[1]+'</a>'; }).join('');
+  var role = ME.user.role, total = Object.values(COUNTS).reduce(function(a,b){ return a+b; }, 0);
+  var link = function(href, label, on, n, cls){ return '<a class="nl' + (cls ? ' ' + cls : '') + (on ? ' on' : '') + '" href="' + href + '"><span>' + esc(label) + '</span>' + (n !== undefined ? '<span class="n">' + n + '</span>' : '') + '</a>'; };
+  var h = '<div class="navgroup">Stories</div>' + link('#/', 'All submissions', cur === 'list' && !listState.stage, total);
+  ME.stages.forEach(function(s){ h += link('#/stage/' + s[0], s[1], cur === 'list' && listState.stage === s[0], COUNTS[s[0]] || 0, 'nsub'); });
+  if (role === 'admin') h += '<div class="navgroup">Production</div>' + link('#/recipients', 'Recipients', cur === 'recipients');
+  if (role === 'admin' || role === 'legal') {
+    h += '<div class="navgroup">Administration</div>';
+    if (role === 'admin') h += link('#/users', 'Users', cur === 'users');
+    h += link('#/ledger', 'History check', cur === 'ledger');
+  }
+  document.getElementById('nav').innerHTML = h;
+  document.getElementById('acctlink').className = 'nl' + (cur === 'account' ? ' on' : '');
 }
 
 // ---------- submissions list ----------
@@ -133,14 +165,11 @@ async function viewList(){
   var modeNote = ME.submissionsMode === 'test' ? '<p class="lock">The public form is in test mode. New submissions are marked as tests until submissions open.</p>'
     : ME.submissionsMode === 'closed' ? '<p class="lock">The public form is closed. No new submissions can arrive.</p>' : '';
   var mailNote = ME.mailConfigured ? '' : '<p class="lock">Email is not connected yet. Notices are recorded here but not delivered.</p>';
-  app.innerHTML = '<h1>Submissions</h1><p class="sub">Every story received, by stage.</p>' + modeNote + mailNote +
-    '<div class="chips">' + '<button class="chip '+(listState.stage===''?'on':'')+'" data-stage="">All<b>'+total+'</b></button>' +
-    ME.stages.map(function(s){ return '<button class="chip '+(listState.stage===s[0]?'on':'')+'" data-stage="'+s[0]+'">'+esc(s[1])+'<b>'+(d.counts[s[0]]||0)+'</b></button>'; }).join('') + '</div>' +
+  app.innerHTML = '<h1>' + (listState.stage ? esc(stageName(listState.stage)) : 'All submissions') + '</h1><p class="sub">' + (listState.stage ? d.submissions.length + ' ' + (d.submissions.length === 1 ? 'story' : 'stories') + ' at this stage.' : total + ' ' + (total === 1 ? 'story' : 'stories') + ' received.') + '</p>' + modeNote + mailNote +
     '<div class="row" style="margin-bottom:12px"><input id="q" type="search" placeholder="Search receipt, title, or name" value="'+esc(listState.q)+'" style="min-width:260px"><button class="ghost" id="qgo">Search</button></div>' +
     '<div class="card wrap-x">' + (d.submissions.length ? '<table><thead><tr><th>Receipt</th><th>Story title</th><th>Submitter</th><th>Received</th><th>Stage</th><th>Reviews</th></tr></thead><tbody>' +
       d.submissions.map(function(s){ return '<tr class="link" data-r="'+esc(s.receipt)+'"><td class="mono">'+esc(s.receipt)+(s.is_test?'<span class="test">test</span>':'')+'</td><td>'+esc(s.title)+'</td><td>'+esc(s.name)+'</td><td>'+when(s.received_at)+'</td><td><span class="pill '+(s.stage==='closed'?'':'amber')+'">'+esc(stageName(s.stage))+'</span>'+(s.outcome && s.stage==='closed'?' <span class="small muted">'+esc(s.outcome)+'</span>':'')+'</td><td>'+s.review_count+'</td></tr>'; }).join('') +
       '</tbody></table>' : '<p class="muted">No submissions here yet.</p>') + '</div>';
-  app.querySelectorAll('.chip').forEach(function(b){ b.onclick = function(){ listState.stage = b.dataset.stage; route(); }; });
   app.querySelectorAll('tr.link').forEach(function(tr){ tr.onclick = function(){ location.hash = '#/s/' + tr.dataset.r; }; });
   var q = document.getElementById('q');
   document.getElementById('qgo').onclick = function(){ listState.q = q.value.trim(); route(); };
@@ -356,11 +385,12 @@ async function viewUsers(){
   var us = await ensureUsers();
   var ROLE_TEXT = { admin:'Everything', reviewer:'Screens and scores assigned stories', legal:'Sees everything; legal review, agreements, exports', writer:'Proposal package for assigned stories' };
   app.innerHTML = '<h1>Users</h1><p class="sub">People who can sign in to the admin site.</p>' +
-    '<p class="lock">Adding someone here sets their role. They also need to be on the sign-in list in Cloudflare Access before they can reach this address.</p>' +
-    '<div class="card wrap-x"><table><thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Can do</th><th></th></tr></thead><tbody>' +
-    us.map(function(u){ return '<tr><td>' + esc(u.email) + '</td><td>' + esc(u.name) + '</td><td>' + esc(u.role) + '</td><td class="small">' + esc(ROLE_TEXT[u.role] || '') + '</td><td>' + (u.email === ME.user.email ? '<span class="small muted">you</span>' : '<a href="#" data-del="' + esc(u.email) + '">Remove</a>') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
-    '<div class="card"><h2>Add or change a user</h2><div class="row"><div><label for="ue">Email</label><input id="ue" type="email" style="min-width:240px"></div><div><label for="un">Name</label><input id="un"></div><div><label for="ur">Role</label><select id="ur">' + ME.roles.map(function(r){ return '<option>' + r + '</option>'; }).join('') + '</select></div><button id="usave">Save</button></div></div>';
-  document.getElementById('usave').onclick = function(){ act(function(){ return api('users', {method:'POST', body:{email: ue.value, name: un.value, role: ur.value}}); }, 'Saved. Add them to the Access sign-in list too.'); };
+    '<div class="card wrap-x"><table><thead><tr><th>Email</th><th>Name</th><th>Role</th><th>Can do</th><th>Last sign-in</th><th></th></tr></thead><tbody>' +
+    us.map(function(u){ return '<tr><td>' + esc(u.email) + (u.must_change ? '<div class="small muted">Temporary password</div>' : '') + '</td><td>' + esc(u.name) + '</td><td>' + esc(u.role) + '</td><td class="small">' + esc(ROLE_TEXT[u.role] || '') + '</td><td class="small">' + (u.last_login ? when(u.last_login) : '<span class="muted">Never</span>') + '</td><td style="white-space:nowrap"><a href="#" data-edit="' + esc(u.email) + '">Edit</a>' + (u.email === ME.user.email ? ' · <span class="small muted">you</span>' : ' · <a href="#" data-del="' + esc(u.email) + '">Remove</a>') + '</td></tr>'; }).join('') + '</tbody></table></div>' +
+    '<div class="card"><h2 id="uform">Add a user</h2><div class="row"><div><label for="ue">Email</label><input id="ue" type="email" autocomplete="off" style="min-width:240px"></div><div><label for="un">Name</label><input id="un" autocomplete="off"></div><div><label for="ur">Role</label><select id="ur">' + ME.roles.map(function(r){ return '<option>' + r + '</option>'; }).join('') + '</select></div><div><label for="up">Temporary password</label><input id="up" type="text" autocomplete="new-password" placeholder="At least 8 characters"></div><button id="usave">Save</button></div>' +
+    '<p class="small muted" id="uhint">They sign in at this address with their email and this password, then must choose their own.</p></div>';
+  document.getElementById('usave').onclick = function(){ act(function(){ return api('users', {method:'POST', body:{email: ue.value, name: un.value, role: ur.value, password: up.value}}); }, 'Saved.'); };
+  app.querySelectorAll('[data-edit]').forEach(function(a){ a.onclick = function(e){ e.preventDefault(); var u = us.find(function(x){ return x.email === a.dataset.edit; }); ue.value = u.email; un.value = u.name || ''; ur.value = u.role; up.value = ''; document.getElementById('uform').textContent = 'Change ' + u.email; document.getElementById('uhint').textContent = 'Leave the password blank to keep the current one. A new password here is temporary; they choose their own at next sign-in.'; ue.scrollIntoView({block:'center'}); }; });
   app.querySelectorAll('[data-del]').forEach(function(a){ a.onclick = function(e){ e.preventDefault(); act(function(){ return api('users/' + encodeURIComponent(a.dataset.del), {method:'DELETE'}); }, 'Removed.'); }; });
 }
 
@@ -375,13 +405,35 @@ async function viewLedger(){
     d.events.map(function(e){ return '<tr><td>' + e.id + '</td><td class="small">' + when(e.at) + '</td><td class="small">' + esc(e.actor) + '</td><td>' + esc(ACTION_LABELS[e.action] || e.action.replace(/_/g,' ')) + '</td><td class="mono">' + (e.receipt ? '<a href="#/s/' + esc(e.receipt) + '">' + esc(e.receipt) + '</a>' : '') + '</td><td class="mono" title="' + esc(e.hash) + '">' + short(e.hash) + '</td></tr>'; }).join('') + '</tbody></table></div>';
 }
 
+// ---------- my account ----------
+function viewAccount(forced){
+  navHtml('account');
+  app.innerHTML = '<h1>My account</h1><p class="sub">' + esc(ME.user.email) + ' · ' + esc(ME.user.role) + '</p>' +
+    (forced ? '<p class="lock">You signed in with a temporary password. Choose your own to continue.</p>' : '') +
+    '<div class="card" style="max-width:460px"><h2>Change password</h2>' +
+    '<label for="pc">Current password</label><input id="pc" type="password" autocomplete="current-password" style="width:100%">' +
+    '<label for="pn">New password</label><input id="pn" type="password" autocomplete="new-password" style="width:100%">' +
+    '<label for="pn2">New password again</label><input id="pn2" type="password" autocomplete="new-password" style="width:100%">' +
+    '<p class="small muted">At least 8 characters. Changing it signs you out everywhere else.</p><p><button id="psave">Change password</button></p></div>';
+  document.getElementById('psave').onclick = async function(){
+    if (pn.value !== pn2.value) return toast('The two new passwords do not match.', true);
+    try { await api('/api/auth/password', {method:'POST', body:{current: pc.value, next: pn.value}}); toast('Password changed.'); ME = null; location.hash = '#/'; await route(); }
+    catch(e){ toast(e.message, true); }
+  };
+}
+
 // ---------- routing ----------
 async function route(){
   var h = location.hash.replace(/^#\/?/, '');
   var p = h.split('/');
   try {
     if (!ME) { ME = await api('me'); document.getElementById('who').textContent = ME.user.email + ' · ' + ME.user.role; }
-    if (p[0] === 's' && p[1]) await viewSubmission(decodeURIComponent(p[1]));
+    closeMenu();
+    if (ME.user.mustChange) { viewAccount(true); return; }
+    try { COUNTS = (await api('counts')).counts; } catch(x) {}
+    listState.stage = p[0] === 'stage' && p[1] ? p[1] : (p[0] === '' ? '' : listState.stage);
+    if (p[0] === 'account') viewAccount(false);
+    else if (p[0] === 's' && p[1]) await viewSubmission(decodeURIComponent(p[1]));
     else if (p[0] === 'recipients') await viewRecipients(p[1]);
     else if (p[0] === 'users') await viewUsers();
     else if (p[0] === 'ledger') await viewLedger();
@@ -390,6 +442,9 @@ async function route(){
     app.innerHTML = '<h1>Something went wrong</h1><p>' + esc(e.message) + '</p><p><a href="#/">Back to submissions</a></p>';
   }
 }
+function closeMenu(){ document.getElementById('shell').classList.remove('open'); document.getElementById('menu').setAttribute('aria-expanded','false'); }
+document.getElementById('menu').onclick = function(){ var o = document.getElementById('shell').classList.toggle('open'); this.setAttribute('aria-expanded', String(o)); };
+document.getElementById('signout').onclick = async function(){ try { await fetch('/api/auth/logout', {method:'POST', credentials:'same-origin'}); } catch(e) {} location.href = '/login'; };
 window.addEventListener('hashchange', function(){ window.scrollTo(0,0); route(); });
 route();
 })();
